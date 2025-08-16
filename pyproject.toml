@@ -1,0 +1,10 @@
+[project]
+name = "recipesbook"
+version = "0.1.0"
+description = "A telegram-bot to store and share your recipe. Like the book on your mama's kitchen!"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aiogram>=3.21.0",
+    "sqlalchemy>=2.0.43",
+]
