@@ -3,9 +3,9 @@ from typing import List
 from sqlalchemy import BigInteger, String, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from bot.db.base import Base
+from .base import Base
 
-class Ingredient:
+class Ingredient(Base):
     __tablename__ = 'ingredients'
     ingredient_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 

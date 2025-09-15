@@ -1,10 +1,10 @@
 from typing import List
-from sqlalchemy import BigInteger, String, ForeignKey, DateTime, Boolean, Float
+from sqlalchemy import String, ForeignKey, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from bot.db.base import Base
+from .base import Base
 
-class Recipe:
+class Recipe(Base):
     __tablename__ = 'recipes'
     recipe_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
@@ -12,6 +12,7 @@ class Recipe:
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
 
     recipe_name: Mapped[str] = mapped_column(String(200))
+    descriptions: Mapped[str]
 
     user: Mapped["User"] = relationship(back_populates='recipes')
     collection: Mapped["Collection"] = relationship(back_populates='recipes')

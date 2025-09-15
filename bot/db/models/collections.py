@@ -1,11 +1,10 @@
 from datetime import datetime
 from typing import List
-from sqlalchemy import BigInteger, String, ForeignKey, DateTime, Boolean
+from sqlalchemy import String, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import text
 
-from bot.db.base import Base
-from bot.db.models.recipes import Recipe
+from .base import Base
 
 
 class Collection(Base):

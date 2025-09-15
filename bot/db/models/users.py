@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy import BigInteger, String, DateTime, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from bot.db.base import Base
+from .base import Base
 
 
 class User(Base):
