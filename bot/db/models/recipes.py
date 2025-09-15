@@ -1,0 +1,32 @@
+from typing import List
+from sqlalchemy import BigInteger, String, ForeignKey, DateTime, Boolean, Float
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from bot.db.base import Base
+
+class Recipe:
+    __tablename__ = 'recipes'
+    recipe_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+
+    collection_id: Mapped[int] = mapped_column(ForeignKey("collections.collection_id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+
+    recipe_name: Mapped[str] = mapped_column(String(200))
+
+    user: Mapped["User"] = relationship(back_populates='recipes')
+    collection: Mapped["Collection"] = relationship(back_populates='recipes')
+    ingredients: Mapped[List["RecipeIngredient"]] = relationship(back_populates='recipe')
+
+
+class RecipeIngredient(Base):
+    __tablename__ = "recipe_ingredients"
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+
+    recipe_id: Mapped[int] = mapped_column(ForeignKey("recipes.recipe_id"))
+    ingredient_id: Mapped[int] = mapped_column(ForeignKey("ingredients.ingredient_id"))
+    amount: Mapped[float] = mapped_column(Float)
+
+    recipe: Mapped["Recipe"] = relationship(back_populates="ingredients")
+    ingredient: Mapped["Ingredient"] = relationship(back_populates="recipe")
+
+
