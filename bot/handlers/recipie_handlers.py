@@ -4,9 +4,11 @@ from aiogram.filters import CommandStart
 from aiogram.enums import ParseMode
 from aiogram.fsm.context import FSMContext
 
+# from bot.handlers.states import RecipeListState
 import bot.db.requests as request
-from bot.handlers.states import QuickRecipe
+from bot.handlers.states import QuickRecipe, RecipeListState
 from bot.keyboards.main_keyboard import main_menu
+from bot.keyboards.recipes_keyboard import another_recipe_kb
 
 recipe_router = Router()
 
@@ -14,26 +16,30 @@ recipe_router = Router()
 async def quick_add(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await state.set_state(QuickRecipe.name)
-    await callback.message.answer('Write recipe title')
+    await callback.message.answer('Write recipe title:')
 
 @recipe_router.message(QuickRecipe.name)
 async def recipe_name(message: Message, state: FSMContext):
-    await state.update_data(name=message.text)
+    await state.update_data(name=message.text.title())
     await state.set_state(QuickRecipe.description)
-    await message.answer('Write your recipe')
+    await message.answer('Write your recipe:')
 
 @recipe_router.message(QuickRecipe.description)
 async def recipe_description(message: Message, state: FSMContext):
     await state.update_data(description=message.text)
     data = await state.get_data()
     # await message.answer(f'Title: {data["name"]}\nDescription: {data["description"]}\nphotos: {data["photos"]}')
+
     await request.quick_add_new_recipe(message.from_user.id, data["name"], data["description"], )
     await message.answer(f'Title: {data["name"]}\nDescription: {data["description"]}')
     await message.answer('Your recipe was add!')
     await state.clear()
+
     photo = FSInputFile('../img/recipesbook.png')
-    await message.answer_photo(photo=photo, caption='Main menu of *your recipes book*', reply_markup=main_menu,
-                               parse_mode=ParseMode.MARKDOWN_V2)
+    await message.answer_photo(photo=photo, caption='Main menu of your recipes book', reply_markup=main_menu,
+                               parse_mode=None)
+
+
     # await state.set_state(QuickRecipe.photos)
     # await message.answer('Add photos if you want (NOT WORKING RIGHT NOW)')
 
@@ -70,7 +76,26 @@ async def quick_add(callback: CallbackQuery):
 async def quick_add(callback: CallbackQuery):
     photo = FSInputFile('../img/recipesbook.png')
     await callback.message.edit_media(
-        media=InputMediaPhoto(media=photo, caption='Main menu of *your recipes book*', parse_mode=ParseMode.MARKDOWN_V2),
+        media=InputMediaPhoto(media=photo, caption='Main menu of *your recipes book*', parse_mode=None),
         reply_markup=main_menu,
     )
     await callback.answer()
+
+@recipe_router.callback_query(F.data == 'pick')
+async def pick_recipe_by_number(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await state.set_state(RecipeListState.waiting_for_number)
+    await callback.message.answer('Write recipe number')
+
+@recipe_router.message(RecipeListState.waiting_for_number, F.text.regexp(r"^\d+$"))
+async def recipe_number(message: Message, state: FSMContext):
+    recipe_number = int(message.text)
+    recipe = await request.get_recipe_by_number(message.from_user.id, recipe_number)
+    if not recipe:
+        await message.answer(f"No recipe with number {recipe_number}")
+        return
+
+    recipe_msg = f'{recipe.recipe_name.title()}\n\n{recipe.descriptions}'
+    await message.answer(recipe_msg, parse_mode=None, reply_markup=another_recipe_kb)
+    await state.clear()
+

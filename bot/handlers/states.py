@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 class QuickRecipe(StatesGroup):
     name = State()
     description = State()
-    photos = State()
+    # photos = State()
 
 class DetailRecipe(StatesGroup):
     name = State()
@@ -12,3 +12,6 @@ class DetailRecipe(StatesGroup):
     description = State()
     equipments = State()
     photos = State()
+
+class RecipeListState(StatesGroup):
+    waiting_for_number = State()

@@ -14,7 +14,10 @@ class Recipe(Base):
     recipe_name: Mapped[str] = mapped_column(String(200))
     descriptions: Mapped[str]
 
-    # TODO: add equipments and nutricious and photos
+    ingredients_table: Mapped[int | None]
+    equipments: Mapped[str | None] = mapped_column(String(250))
+    photos: Mapped[str | None] = mapped_column(String(400))
+    # nutrition: Mapped[str | None]
 
     user: Mapped["User"] = relationship(back_populates='recipes')
     collection: Mapped["Collection"] = relationship(back_populates='recipes')
