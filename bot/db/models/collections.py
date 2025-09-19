@@ -1,8 +1,7 @@
 from datetime import datetime
 from typing import List
-from sqlalchemy import String, ForeignKey, Boolean, DateTime
+from sqlalchemy import String, ForeignKey, Boolean, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import text, func
 
 from .base import Base
 

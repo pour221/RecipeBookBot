@@ -23,11 +23,6 @@ def get_scroll_list_kb(page: int, has_next: bool) -> InlineKeyboardMarkup:
                                                                        callback_data='pick')],
                                                  [main_menu_btn]])
 
-# scroll_list_kb = InlineKeyboardMarkup(inline_keyboard=[
-#     [InlineKeyboardButton(text='<', callback_data='backward_btn'), InlineKeyboardButton(text='>', callback_data='forward_btn')],
-#     [main_menu_btn]
-# ])
-
 another_recipe_kb = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Choose another recipe', callback_data='list')],
     [main_menu_btn]

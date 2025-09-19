@@ -3,7 +3,7 @@ from sqlalchemy import BigInteger, String, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import text
 
-from bot.db.base import Base
+from .base import Base
 
 class Tag(Base):
     __tablename__ = 'tags'

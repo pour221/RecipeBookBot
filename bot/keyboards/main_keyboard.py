@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-main_menu = InlineKeyboardMarkup(inline_keyboard=[
+main_menu_kb = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Find recipe', callback_data='find')],
     [InlineKeyboardButton(text='Random recipe', callback_data='random')],
     [InlineKeyboardButton(text='Recipes list', callback_data='list')],
