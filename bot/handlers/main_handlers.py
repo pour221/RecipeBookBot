@@ -23,8 +23,9 @@ async def cmd_start(message: Message, session: AsyncSession):
     await show_main_menu(message)
 
 @main_router.callback_query(F.data == 'main_menu')
-async def main_menu(callback: CallbackQuery, session: AsyncSession):
+async def main_menu(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
+    await state.clear()
     await show_main_menu(callback)
 
 @main_router.callback_query(F.data == 'new_recipe')

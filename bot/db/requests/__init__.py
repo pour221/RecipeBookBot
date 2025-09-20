@@ -13,6 +13,8 @@ __all__ = [
     'quick_add_new_recipe',
     'get_list_recipes',
     'get_list_page',
-    'get_recipe_by_number',
-    'get_recipe_by_id'
+    # 'get_recipe_by_number',
+    'get_recipe_by_id',
+    'delete_recipe_by_id',
+    'update_recipe'
 ]

@@ -12,5 +12,5 @@ class DetailRecipe(StatesGroup):
     equipments = State()
     photos = State()
 
-class RecipeListState(StatesGroup):
-    waiting_for_number = State()
+class EditRecipe(StatesGroup):
+    waiting_for_value = State()
