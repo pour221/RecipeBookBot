@@ -14,4 +14,5 @@ __all__ = [
     'get_list_recipes',
     'get_list_page',
     'get_recipe_by_number',
+    'get_recipe_by_id'
 ]

@@ -8,13 +8,14 @@ from data.configs import pics
 
 async def show_main_menu(event):
     photo = FSInputFile(pics['main'])
+    caption_text = 'Main menu of *your recipe book*'
 
     if isinstance(event, Message):
         await event.answer_photo(photo=photo,
-                               caption='Main menu of *your recipes book*',
+                               caption=caption_text,
                                reply_markup=main_menu_kb, parse_mode=ParseMode.MARKDOWN_V2)
     elif isinstance(event, CallbackQuery):
         await event.message.edit_media(InputMediaPhoto(media=photo,
-                                                       caption='Main menu of *your recipes book*',
+                                                       caption=caption_text,
                                                        parse_mode=ParseMode.MARKDOWN_V2),
                                        reply_markup=main_menu_kb)
