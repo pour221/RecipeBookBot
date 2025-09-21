@@ -16,6 +16,7 @@ async def main():
     dp = Dispatcher()
 
     dp.update.middleware(DbSessionMiddleware(async_session))
+
     dp.include_router(main_router)
     dp.include_router(recipe_router)
 

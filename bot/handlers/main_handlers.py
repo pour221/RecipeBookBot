@@ -2,8 +2,12 @@ from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, FSInputFile, InputMediaPhoto
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
+from aiogram.enums import ParseMode
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from bot.utils.formatting import safe_md
+from bot.db.requests.recipe_requests import get_list_page
+from bot.keyboards.recipes_keyboard import get_recipe_list_kb
 from bot.services.main_menu import show_main_menu
 from bot.db.requests import add_user, init_first_collection
 from bot.keyboards.recipes_keyboard import add_recipes_keyboard
@@ -42,6 +46,27 @@ async def cancel_command(message: Message, state: FSMContext):
     await message.answer('Action canceled')
     await show_main_menu(message)
 
+@main_router.callback_query(F.data == 'list')
+async def list_recipe(callback: CallbackQuery, session: AsyncSession):
+    page = 1
+    offset = (page - 1) * 12
+
+    recipes, has_next, total_pages = await get_list_page(session, callback.from_user.id, page)
+
+    if not recipes:
+        await callback.message.answer(text='You do not have any recipes')
+        return
+
+
+    recipes_list = '\n'.join([f'{offset + num+1}. {i.recipe_name}' for num, i in enumerate(recipes)])
+    caption_text = safe_md(f'{len(recipes)} recipes are displayed. Use the menu to view the rest\n\nPage {page}/{total_pages}\n\n{recipes_list}')
+    await callback.message.edit_media(
+        media=InputMediaPhoto(media=FSInputFile(pics['list']),
+                              caption= caption_text,
+                              parse_mode=ParseMode.MARKDOWN_V2),
+        reply_markup=get_recipe_list_kb(recipes, offset, page, has_next))
+    await callback.answer()
+
 @main_router.callback_query(F.data == 'find')
 async def find_recipe(callback: CallbackQuery):
     await callback.answer('Not ready yet')
@@ -58,6 +83,6 @@ async def change_collection(callback: CallbackQuery):
 async def new_collection(callback: CallbackQuery):
     await callback.answer('Not ready yet')
 
-@main_router.callback_query(F.data == 'FeedBack')
+@main_router.callback_query(F.data == 'feedback')
 async def feedback_collection(callback: CallbackQuery):
     await callback.answer('Not ready yet')

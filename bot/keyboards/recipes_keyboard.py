@@ -1,8 +1,10 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from bot.keyboards.callbacks import RecipeActionCb
 
-EDITABLE_RECIPE_FIELDS = {
+# static variables and keyboards
+AVAILABLE_RECIPE_FIELDS = {
     'recipe_name': 'Title',
-    'description': 'Description',
+    'descriptions': 'Description',
     'ingredients_table': 'Ingredients',
     'equipments': 'Equipments',
     'photos': 'Photo'
@@ -18,13 +20,22 @@ add_recipes_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [main_menu_btn]
 ])
 
+successfully_added_recipe_kb = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Quick add another recipe', callback_data='quick_add')],
+    [InlineKeyboardButton(text='Detail add another recipe', callback_data='detailed_add')],
+    [InlineKeyboardButton(text='Go to recipe list', callback_data='list')],
+    [main_menu_btn]
+])
+
+# dynamic keyboards
 def get_recipe_list_kb(recipes, offset, page: int, has_next: bool) -> InlineKeyboardMarkup:
     recipes_buttons = []
     recipe_row = []
     for idx, recipe in enumerate(recipes, start=1):
         recipe_row.append(InlineKeyboardButton(text=str(offset + idx),
-                                               callback_data=f"recipe:{recipe.recipe_id}"))
-
+                                               callback_data=RecipeActionCb(action='show_recipe',
+                                                                            recipe_id=recipe.recipe_id,
+                                                                            page=page).pack()))
         if len(recipe_row) == 4:
             recipes_buttons.append(recipe_row)
             recipe_row = []
@@ -33,6 +44,7 @@ def get_recipe_list_kb(recipes, offset, page: int, has_next: bool) -> InlineKeyb
         recipes_buttons.append(recipe_row)
 
     page_buttons = []
+    
     if page > 1:
         page_buttons.append(InlineKeyboardButton(text='<', callback_data=f"list_page:{page-1}"))
     if has_next:
@@ -42,54 +54,52 @@ def get_recipe_list_kb(recipes, offset, page: int, has_next: bool) -> InlineKeyb
     recipes_buttons.append([main_menu_btn])
     return InlineKeyboardMarkup(inline_keyboard=recipes_buttons)
 
-def get_recipe_option_kb(recipe_id: int) -> InlineKeyboardMarkup:
+def get_recipe_option_kb(recipe_id: int, page: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text='Choose another recipe', callback_data='list')],
+        [InlineKeyboardButton(text='Choose another recipe', callback_data=f'list_page:{page}')],
 
-        [InlineKeyboardButton(text='Edit recipe', callback_data=f'edit_recipe:{recipe_id}'),
-         InlineKeyboardButton(text='Delete recipe', callback_data=f'delete_recipe:{recipe_id}')],
+        [InlineKeyboardButton(text='Edit recipe', callback_data=RecipeActionCb(action='edit_recipe',
+                                                                               recipe_id=recipe_id,
+                                                                               page=page).pack()), #f'edit_recipe:{recipe_id}'),
+         InlineKeyboardButton(text='Delete recipe', callback_data=RecipeActionCb(action='delete_recipe',
+                                                                                 recipe_id=recipe_id,
+                                                                                 page=page).pack())] ,#f'delete_recipe:{recipe_id}:{page}')
 
         [main_menu_btn]
 ])
 
-def get_confirm_delete_kb(recipe_id: int):
+def get_confirm_delete_kb(recipe_id: int, page: int):
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="Yes", callback_data=f"confirm_delete_recipe:{recipe_id}"),
-                InlineKeyboardButton(text="No", callback_data=f"recipe:{recipe_id}")
+                InlineKeyboardButton(text="Yes", callback_data=RecipeActionCb(action='confirm_delete_recipe',
+                                                                              recipe_id=recipe_id,
+                                                                              page=page).pack()),#f"confirm_delete_recipe:{recipe_id}:{page}"),
+                InlineKeyboardButton(text="No", callback_data=RecipeActionCb(action='show_recipe',
+                                                                             recipe_id=recipe_id,
+                                                                             page=page).pack()) # f"recipe:{recipe_id}:{page}")
             ]
         ]
     )
 
-# def get_edit_methods_kb(recipe_id):
-#     return InlineKeyboardMarkup(inline_keyboard=[
-#
-#         [InlineKeyboardButton(text='Quick edit', callback_data=f'quick_edit:{recipe_id}')],
-#         [InlineKeyboardButton(text='Detail edit', callback_data=f'detail_edit:{recipe_id}')],
-#         [main_menu_btn]
-#
-#     ])
+def successfully_delete_recipe_options(page: int):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text='Back to list', callback_data=f'list_page:{page}')],
+        [main_menu_btn]
+    ])
 
-def get_edit_options_kb(recipe_id: int):
-    # changeable_recipe_attrs = ['name', 'description', 'ingredients_table', 'equipments', 'photos']
-
+def get_edit_options_kb(recipe_id: int, page: int):
     buttons = [[InlineKeyboardButton(text=label,
                                      callback_data=f'edit_field:{field}:{recipe_id}')]
-                for field, label in EDITABLE_RECIPE_FIELDS.items()]
-    buttons.append([InlineKeyboardButton(text='Back to list', callback_data='list')])
+                for field, label in AVAILABLE_RECIPE_FIELDS.items()]
+    buttons.append([InlineKeyboardButton(text='Back to list', callback_data=f'list_page:{page}')])
     buttons.append([main_menu_btn])
     return InlineKeyboardMarkup(inline_keyboard=buttons)
-    # for recipe_attr in changeable_recipe_attrs:
-    #     buttons.append([InlineKeyboardButton(text=recipe_attr.replace('_', ' ').title(),
-    #                                          callback_data=f'edit_field:{recipe_attr}:{recipe_id}')])
-    #
-    # buttons.append([main_menu_btn])
-    # return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 def successfully_update_recipe_field_options(recipe_id):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text='Edite another field', callback_data=f'edit_recipe:{recipe_id}')],
+        [InlineKeyboardButton(text='Edite another field', callback_data=RecipeActionCb(action='edit_recipe',
+                                                                                       recipe_id=recipe_id).pack())],#f'edit_recipe:{recipe_id}')],
         [InlineKeyboardButton(text='Back to list', callback_data='list')],
         [main_menu_btn]
     ])

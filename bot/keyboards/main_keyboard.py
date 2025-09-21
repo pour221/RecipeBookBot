@@ -7,5 +7,5 @@ main_menu_kb = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Add new recipe', callback_data='new_recipe')],
     [InlineKeyboardButton(text='Change collection', callback_data='change'),
      InlineKeyboardButton(text='Create new collection', callback_data='new_collection')],
-    [InlineKeyboardButton(text='FeedBack', callback_data='FeedBack')],
+    [InlineKeyboardButton(text='FeedBack', callback_data='feedback')],
 ])

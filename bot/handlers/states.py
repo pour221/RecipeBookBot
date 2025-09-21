@@ -3,7 +3,6 @@ from aiogram.fsm.state import State, StatesGroup
 class QuickRecipe(StatesGroup):
     name = State()
     description = State()
-    # photos = State()
 
 class DetailRecipe(StatesGroup):
     name = State()
@@ -14,3 +13,6 @@ class DetailRecipe(StatesGroup):
 
 class EditRecipe(StatesGroup):
     waiting_for_value = State()
+
+class FeedbackForm(StatesGroup):
+    waiting_for_message = State()
