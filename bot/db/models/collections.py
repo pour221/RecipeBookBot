@@ -18,6 +18,7 @@ class Collection(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
-    user: Mapped["User"] = relationship(back_populates="collections")
+
+    user: Mapped["User"] = relationship(back_populates="collections", foreign_keys=[user_id])
     recipes: Mapped[List['Recipe']] = relationship(back_populates='collection')
 

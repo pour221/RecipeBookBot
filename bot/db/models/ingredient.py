@@ -8,7 +8,8 @@ class Ingredient(Base):
     __tablename__ = 'ingredients'
     ingredient_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
-    name: Mapped[str] = mapped_column(String(150))
+    name_ru: Mapped[str] = mapped_column(String(150))
+    name_en: Mapped[str] = mapped_column(String(250))
     kcal: Mapped[int]  # per 100 g
     protein: Mapped[float]
     fat: Mapped[float]

@@ -11,6 +11,9 @@ class DetailRecipe(StatesGroup):
     equipments = State()
     photos = State()
 
+class NewCollection(StatesGroup):
+    waiting_new_collection_name = State()
+
 class EditRecipe(StatesGroup):
     waiting_for_value = State()
 

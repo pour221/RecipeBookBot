@@ -10,10 +10,11 @@ from bot.utils.formatting import safe_md
 from bot.db.requests.recipe_requests import get_list_page
 from bot.keyboards.recipes_keyboard import get_recipe_list_kb
 from bot.services.main_menu import show_main_menu
-from bot.db.requests import add_user, init_first_collection
-from bot.keyboards.main_keyboard import feedback_kb
-from bot.keyboards.recipes_keyboard import add_recipes_keyboard
+from bot.db.requests import init_new_user
+from bot.keyboards.main_keyboard import feedback_kb, language_kb
+from bot.keyboards.recipes_keyboard import add_recipes_keyboard, no_recipe_kb
 from bot.keyboards.collections_keyboard import collections_menu_keyboard
+from bot.db.models import Collection
 
 from data.configs import pics, FEEDBACK_CHAT_ID
 
@@ -21,12 +22,17 @@ main_router = Router()
 
 @main_router.message(CommandStart())
 async def cmd_start(message: Message, session: AsyncSession):
-    await add_user(session, message.from_user.id,
+    await init_new_user(session, message.from_user.id,
                            message.from_user.username,
                    f'{message.from_user.first_name} {message.from_user.last_name}',
                           message.from_user.is_premium)
 
-    await init_first_collection(session, message.from_user.id)
+    await show_main_menu(message)
+
+@main_router.message(Command('cancel'))
+async def cancel_command(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer('Action canceled')
     await show_main_menu(message)
 
 @main_router.callback_query(F.data == 'main_menu')
@@ -43,21 +49,19 @@ async def new_recipe(callback: CallbackQuery):
         media=InputMediaPhoto(media=photo, caption='Choose adding option'),
         reply_markup=add_recipes_keyboard
     )
-@main_router.message(Command('cancel'))
-async def cancel_command(message: Message, state: FSMContext):
-    await state.clear()
-    await message.answer('Action canceled')
-    await show_main_menu(message)
 
 @main_router.callback_query(F.data == 'list')
-async def list_recipe(callback: CallbackQuery, session: AsyncSession):
+async def list_recipe(callback: CallbackQuery, collection: Collection, session: AsyncSession):
     page = 1
     offset = (page - 1) * 12
 
-    recipes, has_next, total_pages = await get_list_page(session, callback.from_user.id, page)
+    recipes, has_next, total_pages = await get_list_page(session, collection, page)
 
     if not recipes:
-        await callback.message.answer(text='You do not have any recipes')
+        await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['list']),
+                                                          caption='You do not have any recipes'),
+                                          reply_markup=no_recipe_kb)
+        await callback.answer()
         return
 
 
@@ -88,13 +92,18 @@ async def collections_menu(callback: CallbackQuery, session: AsyncSession):
                                       reply_markup=collections_menu_keyboard)
     await callback.answer()
 
-# @main_router.callback_query(F.data == 'change')
-# async def change_collection(callback: CallbackQuery):
-#     await callback.answer('Not ready yet')
-#
-# @main_router.callback_query(F.data == 'new_collection')
-# async def new_collection(callback: CallbackQuery):
-#     await callback.answer('Not ready yet')
+
+@main_router.callback_query(F.data == 'help')
+async def help_msg(callback: CallbackQuery):
+    photo = FSInputFile(pics['main'])
+    caption_text =('This is Bot to store your favorite recipe\\.\n*This is test description*\n'
+                           'Commands:\n'
+                           '/start \\- start bot and calling main menu\n'
+                           '/cancel \\- cancel current action and return to main menu')
+    await callback.message.edit_media(InputMediaPhoto(media=photo,
+                                                      caption=caption_text,
+                                                      parse_mode=ParseMode.MARKDOWN_V2),
+                                      reply_markup=language_kb)
 
 @main_router.callback_query(F.data == 'feedback')
 async def get_feedback_from_user(callback: CallbackQuery, state: FSMContext):
@@ -114,6 +123,10 @@ async def receive_feedback(message: Message, state: FSMContext, bot: Bot):
                          reply_markup=feedback_kb)
     await state.clear()
 
-# @main_router.message()
-# async def degub_chat_id(message: Message):
-#     print(message.chat.id)
+@main_router.callback_query(F.data.startswith('language:'))
+async def change_language(callback: CallbackQuery, session: AsyncSession):
+    selected_language = callback.data.split(':')[1]
+    if selected_language == 'ru':
+        await callback.answer('Русский язык скоро появится!')
+    elif selected_language == 'en':
+        await callback.answer('Your current language is English')

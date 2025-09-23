@@ -13,10 +13,10 @@ from bot.keyboards.recipes_keyboard import (get_recipe_option_kb, get_recipe_lis
                                             get_confirm_delete_kb, get_edit_options_kb,
                                             AVAILABLE_RECIPE_FIELDS, successfully_update_recipe_field_options,
                                             successfully_delete_recipe_options, successfully_added_recipe_kb) # add_recipes_keyboard
-from bot.keyboards.callbacks import RecipeActionCb
+from bot.keyboards.callbacks import RecipeCb
 from bot.services.main_menu import show_main_menu
 from bot.utils.formatting import safe_md
-
+from bot.db.models import User, Collection
 from data.configs import pics
 
 recipe_router = Router()
@@ -37,11 +37,13 @@ async def recipe_name(message: Message, state: FSMContext):
                              parse_mode=ParseMode.MARKDOWN_V2)
 
 @recipe_router.message(QuickRecipe.description)
-async def recipe_description(message: Message, state: FSMContext, session: AsyncSession):
+async def recipe_description(message: Message, state: FSMContext, user: User,
+                             collection: Collection, session: AsyncSession):
+
     await state.update_data(description=message.text)
     data = await state.get_data()
 
-    await quick_add_new_recipe(session, message.from_user.id, data["name"], data["description"], )
+    await quick_add_new_recipe(session, user, collection, data["name"], data["description"], )
     await message.answer(f'Your recipe *"{safe_md(data["name"])}"* has been added \\!', parse_mode=ParseMode.MARKDOWN_V2,
                          reply_markup=successfully_added_recipe_kb)
     await state.clear()
@@ -59,15 +61,19 @@ async def quick_add(callback: CallbackQuery):
     await callback.answer('New amazing options will be here very soon. Stay tuned!')
 
 @recipe_router.callback_query(F.data.startswith("list_page:"))
-async def next_page(callback: CallbackQuery, session: AsyncSession):
+async def next_page(callback: CallbackQuery, user: User,
+                    collection: Collection, session: AsyncSession):
     page = int(callback.data.split(':')[1])
     offset = (page - 1) * 12
 
-    recipes, has_next, total_pages = await get_list_page(session, callback.from_user.id, page)
+    recipes, has_next, total_pages = await get_list_page(session, collection, page)
 
-    if not recipes:
-        await callback.message.edit_text("You do not have any recipes")
-        return
+    # if not recipes:
+    #     await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['list']),
+    #                                                       caption='You do not have any recipes'),
+    #                                       reply_markup=successfully_added_recipe_kb)
+    #     #("You do not have any recipes")
+    #     return
 
     recipes_list = '\n'.join([f'{offset + num + 1}. {i.recipe_name}' for num, i in enumerate(recipes)])
     caption_text = safe_md(f'{len(recipes)} recipes are displayed. Use the menu to view the rest\n\nPage {page}/{total_pages}\n\n{recipes_list}')
@@ -77,8 +83,8 @@ async def next_page(callback: CallbackQuery, session: AsyncSession):
                                   reply_markup=get_recipe_list_kb(recipes, offset, page, has_next))
     await callback.answer()
 
-@recipe_router.callback_query(RecipeActionCb.filter(F.action == "show_recipe"))
-async def show_recipe(callback: CallbackQuery, callback_data: RecipeActionCb, session: AsyncSession):
+@recipe_router.callback_query(RecipeCb.filter(F.action == "show_recipe"))
+async def show_recipe(callback: CallbackQuery, callback_data: RecipeCb, session: AsyncSession):
     recipe = await get_recipe_by_id(session, callback_data.recipe_id)
 
     if not recipe:
@@ -93,8 +99,8 @@ async def show_recipe(callback: CallbackQuery, callback_data: RecipeActionCb, se
                                       reply_markup=get_recipe_option_kb(callback_data.recipe_id, callback_data.page))
     await callback.answer()
 
-@recipe_router.callback_query(RecipeActionCb.filter(F.action == "edit_recipe"))
-async def  edit_recipe(callback: CallbackQuery, callback_data: RecipeActionCb, session: AsyncSession):
+@recipe_router.callback_query(RecipeCb.filter(F.action == "edit_recipe"))
+async def  edit_recipe(callback: CallbackQuery, callback_data: RecipeCb, session: AsyncSession):
     recipe = await get_recipe_by_id(session, callback_data.recipe_id)
     caption_text = f'*{safe_md(recipe.recipe_name.title())}*\n\n{safe_md(recipe.descriptions)}\n\nChoose what to change in the recipe'
     await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['adding']),
@@ -103,8 +109,8 @@ async def  edit_recipe(callback: CallbackQuery, callback_data: RecipeActionCb, s
                                       reply_markup=get_edit_options_kb(callback_data.recipe_id, callback_data.page))
     await callback.answer()
 
-@recipe_router.callback_query(RecipeActionCb.filter(F.action == "delete_recipe"))
-async def delete_recipe(callback: CallbackQuery, callback_data: RecipeActionCb, session: AsyncSession):
+@recipe_router.callback_query(RecipeCb.filter(F.action == "delete_recipe"))
+async def delete_recipe(callback: CallbackQuery, callback_data: RecipeCb, session: AsyncSession):
     recipe = await get_recipe_by_id(session, callback_data.recipe_id)
     caption_text = f'Are you sure you want to delete the *{safe_md(recipe.recipe_name)}* recipe?'
     await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['adding']),
@@ -113,8 +119,8 @@ async def delete_recipe(callback: CallbackQuery, callback_data: RecipeActionCb, 
                                       reply_markup=get_confirm_delete_kb(callback_data.recipe_id, callback_data.page))
     await callback.answer()
 
-@recipe_router.callback_query(RecipeActionCb.filter(F.action == "confirm_delete_recipe"))
-async def confirm_delete_recipe(callback: CallbackQuery, callback_data: RecipeActionCb, session: AsyncSession):
+@recipe_router.callback_query(RecipeCb.filter(F.action == "confirm_delete_recipe"))
+async def confirm_delete_recipe(callback: CallbackQuery, callback_data: RecipeCb, session: AsyncSession):
     recipe = await get_recipe_by_id(session, callback_data.recipe_id)
     caption_text = f'The recipe *{safe_md(recipe.recipe_name)}* has been deleted'
     await delete_recipe_by_id(session, recipe)
