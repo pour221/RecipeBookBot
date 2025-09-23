@@ -3,7 +3,6 @@ from aiogram.types import Message, CallbackQuery
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
 from bot.db.models import User, Collection
 
 
@@ -30,6 +29,5 @@ class DbUserMiddleware(BaseMiddleware):
 
         data["user"] = user
         data["collection"] = collection
-
 
         return await handler(event, data)

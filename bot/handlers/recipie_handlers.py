@@ -63,10 +63,11 @@ async def quick_add(callback: CallbackQuery):
 @recipe_router.callback_query(F.data.startswith("list_page:"))
 async def next_page(callback: CallbackQuery, user: User,
                     collection: Collection, session: AsyncSession):
+    page_size = 12
     page = int(callback.data.split(':')[1])
-    offset = (page - 1) * 12
+    offset = (page - 1) * page_size
 
-    recipes, has_next, total_pages = await get_list_page(session, collection, page)
+    recipes, has_next, total_pages = await get_list_page(session, collection, page, page_size)
 
     # if not recipes:
     #     await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['list']),

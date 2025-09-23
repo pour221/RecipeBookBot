@@ -10,6 +10,10 @@ class RecipeCb(CallbackData, prefix='recipe'):
     ingredient: str | None = None
     equipment: str | None = None
 
+class CollectionsCb(CallbackData, prefix='collection'):
+    action: str | None = None
+    page : int | None = None
+
 class DbUserCb(CallbackData, prefix='user'):
     user_id: int
     user_current_collection: int

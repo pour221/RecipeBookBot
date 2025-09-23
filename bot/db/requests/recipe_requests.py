@@ -19,16 +19,7 @@ async def add_new_recipe(session: AsyncSession, user, name,
 async def quick_add_new_recipe(session: AsyncSession, user, collection, name, description):
     await add_new_recipe(session,  user, name, collection, description, None, None, None)
 
-# async def get_list_recipes(session: AsyncSession,  user_id):
-#     user = await session.scalar(select(User).where(User.tg_id == user_id))
-#     collection = await session.scalar(select(Collection).where(Collection.user_id == user.id))
-#     recipies = await session.scalars(select(Recipe).where(Recipe.collection_id == collection.collection_id))
-#     return recipies.all()
-
-async def get_list_page(session: AsyncSession, collection, page, page_size=12):
-    # user = await session.scalar(select(User).where(User.tg_id == user_id))
-    # collection = await session.scalar(select(Collection).where(Collection.user_id == user.id))
-
+async def get_list_page(session: AsyncSession, collection, page, page_size):
     total = await session.scalars(select(Recipe).where(Recipe.collection_id == collection.collection_id))
 
     stmt = (
