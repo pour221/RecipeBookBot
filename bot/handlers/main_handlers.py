@@ -1,18 +1,21 @@
-from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery, FSInputFile, InputMediaPhoto
+from aiogram import Router, F, Bot
+from aiogram.types import Message, CallbackQuery, FSInputFile, InputMediaPhoto, MessageAutoDeleteTimerChanged
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.enums import ParseMode
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from bot.handlers.states import FeedbackForm
 from bot.utils.formatting import safe_md
 from bot.db.requests.recipe_requests import get_list_page
 from bot.keyboards.recipes_keyboard import get_recipe_list_kb
 from bot.services.main_menu import show_main_menu
 from bot.db.requests import add_user, init_first_collection
+from bot.keyboards.main_keyboard import feedback_kb
 from bot.keyboards.recipes_keyboard import add_recipes_keyboard
+from bot.keyboards.collections_keyboard import collections_menu_keyboard
 
-from data.configs import pics
+from data.configs import pics, FEEDBACK_CHAT_ID
 
 main_router = Router()
 
@@ -75,14 +78,42 @@ async def find_recipe(callback: CallbackQuery):
 async def random_recipe(callback: CallbackQuery):
     await callback.answer('Not ready yet')
 
-@main_router.callback_query(F.data == 'change')
-async def change_collection(callback: CallbackQuery):
-    await callback.answer('Not ready yet')
+@main_router.callback_query(F.data == 'my_collections')
+async def collections_menu(callback: CallbackQuery, session: AsyncSession):
+    photo = FSInputFile(pics['main'])
+    caption_text = 'Choose what you want to do'
+    await callback.message.edit_media(media=InputMediaPhoto(media=photo,
+                                                            caption=caption_text,
+                                                            parse_mode=ParseMode.MARKDOWN_V2),
+                                      reply_markup=collections_menu_keyboard)
+    await callback.answer()
 
-@main_router.callback_query(F.data == 'new_collection')
-async def new_collection(callback: CallbackQuery):
-    await callback.answer('Not ready yet')
+# @main_router.callback_query(F.data == 'change')
+# async def change_collection(callback: CallbackQuery):
+#     await callback.answer('Not ready yet')
+#
+# @main_router.callback_query(F.data == 'new_collection')
+# async def new_collection(callback: CallbackQuery):
+#     await callback.answer('Not ready yet')
 
 @main_router.callback_query(F.data == 'feedback')
-async def feedback_collection(callback: CallbackQuery):
-    await callback.answer('Not ready yet')
+async def get_feedback_from_user(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(FeedbackForm.waiting_for_message)
+    photo = FSInputFile(pics['adding'])
+    caption_text = ("Write your feedback: Write what you like, what you don't like, what you would like to add, "
+                    "and what seems unnecessary and, in your opinion, can be removed.")
+    await callback.message.edit_media(media=InputMediaPhoto(media=photo,
+                                                            caption=caption_text))
+    await callback.answer()
+
+@main_router.message(FeedbackForm.waiting_for_message)
+async def receive_feedback(message: Message, state: FSMContext, bot: Bot):
+    await bot.send_message(FEEDBACK_CHAT_ID,
+                           f'Feedback from @{message.from_user.username}\nID: {message.from_user.id}\n\nReceived message:\n{message.text}')
+    await message.answer(f"Thank you for your feedback! Your message has been sent, we're working hard to get better!",
+                         reply_markup=feedback_kb)
+    await state.clear()
+
+# @main_router.message()
+# async def degub_chat_id(message: Message):
+#     print(message.chat.id)

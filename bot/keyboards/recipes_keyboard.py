@@ -1,6 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from bot.keyboards.callbacks import RecipeActionCb
 
+from bot.keyboards.callbacks import RecipeActionCb
+from bot.keyboards.main_keyboard import main_menu_btn
 # static variables and keyboards
 AVAILABLE_RECIPE_FIELDS = {
     'recipe_name': 'Title',
@@ -10,7 +11,7 @@ AVAILABLE_RECIPE_FIELDS = {
     'photos': 'Photo'
 }
 
-main_menu_btn = InlineKeyboardButton(text='>> Main menu <<', callback_data='main_menu')
+
 
 add_recipes_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Quick add', callback_data='quick_add')],
@@ -44,7 +45,7 @@ def get_recipe_list_kb(recipes, offset, page: int, has_next: bool) -> InlineKeyb
         recipes_buttons.append(recipe_row)
 
     page_buttons = []
-    
+
     if page > 1:
         page_buttons.append(InlineKeyboardButton(text='<', callback_data=f"list_page:{page-1}"))
     if has_next:
