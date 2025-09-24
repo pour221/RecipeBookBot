@@ -37,13 +37,13 @@ async def recipe_name(message: Message, state: FSMContext):
                              parse_mode=ParseMode.MARKDOWN_V2)
 
 @recipe_router.message(QuickRecipe.description)
-async def recipe_description(message: Message, state: FSMContext, user: User,
-                             collection: Collection, session: AsyncSession):
+async def recipe_description(message: Message, state: FSMContext, current_user: User,
+                             active_collection: Collection, session: AsyncSession):
 
     await state.update_data(description=message.text)
     data = await state.get_data()
 
-    await quick_add_new_recipe(session, user, collection, data["name"], data["description"], )
+    await quick_add_new_recipe(session, current_user, active_collection, data["name"], data["description"], )
     await message.answer(f'Your recipe *"{safe_md(data["name"])}"* has been added \\!', parse_mode=ParseMode.MARKDOWN_V2,
                          reply_markup=successfully_added_recipe_kb)
     await state.clear()
@@ -61,20 +61,13 @@ async def quick_add(callback: CallbackQuery):
     await callback.answer('New amazing options will be here very soon. Stay tuned!')
 
 @recipe_router.callback_query(F.data.startswith("list_page:"))
-async def next_page(callback: CallbackQuery, user: User,
-                    collection: Collection, session: AsyncSession):
+async def next_page(callback: CallbackQuery, current_user: User,
+                    active_collection: Collection, session: AsyncSession):
     page_size = 12
     page = int(callback.data.split(':')[1])
     offset = (page - 1) * page_size
 
-    recipes, has_next, total_pages = await get_list_page(session, collection, page, page_size)
-
-    # if not recipes:
-    #     await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['list']),
-    #                                                       caption='You do not have any recipes'),
-    #                                       reply_markup=successfully_added_recipe_kb)
-    #     #("You do not have any recipes")
-    #     return
+    recipes, has_next, total_pages = await get_list_page(session, active_collection, page, page_size)
 
     recipes_list = '\n'.join([f'{offset + num + 1}. {i.recipe_name}' for num, i in enumerate(recipes)])
     caption_text = safe_md(f'{len(recipes)} recipes are displayed. Use the menu to view the rest\n\nPage {page}/{total_pages}\n\n{recipes_list}')

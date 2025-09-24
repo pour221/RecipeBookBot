@@ -18,6 +18,7 @@ class User(Base):
 
     language: Mapped[str] = mapped_column(String(5), default="en")
     active_collection_id: Mapped[int | None] =  mapped_column(ForeignKey("collections.collection_id"), nullable=True)
+    user_base_collection_id: Mapped[int | None] =  mapped_column(ForeignKey("collections.collection_id"), nullable=True)
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     last_active_at: Mapped[datetime | None]
@@ -31,6 +32,10 @@ class User(Base):
     payment_provider: Mapped[str | None] = mapped_column(String(50))
     payment_id: Mapped[str | None] = mapped_column(String(100))
 
+    base_collection: Mapped[List["Collection"]] = relationship(
+        back_populates='user',
+        foreign_keys=[user_base_collection_id]
+    )
     active_collection: Mapped[List["Collection"]] = relationship(
         back_populates='user',
         foreign_keys=[active_collection_id]

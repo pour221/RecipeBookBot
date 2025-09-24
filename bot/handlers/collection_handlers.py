@@ -8,8 +8,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from bot.db.requests.collection_requests import create_new_collection, get_collection_list_page
 from bot.handlers.states import NewCollection
 from bot.db.models import User, Collection
-from bot.keyboards.collections_keyboard import successfully_created_collection_kb, get_collection_list_kb
+from bot.keyboards.collections_keyboard import (successfully_created_collection_kb, get_collection_list_kb,
+                                                manage_collection_options_kb)
 from bot.utils.formatting import safe_md
+from bot.keyboards.callbacks import CollectionsCb
 
 from data.configs import pics
 
@@ -28,16 +30,16 @@ async def new_collection(callback: CallbackQuery, state: FSMContext):
 
 @collection_router.message(NewCollection.waiting_new_collection_name)
 async def receiving_new_collection_name(message: Message, state: FSMContext,
-                                      user: User, session: AsyncSession):
+                                      current_user: User, session: AsyncSession):
     new_name = message.text
-    await create_new_collection(session, user, new_name)
+    await create_new_collection(session, current_user, new_name)
     await state.clear()
     await message.answer_photo(photo=FSInputFile(pics['adding']),
                                caption='A new collection has been created! To use it, change the active collection in the menu.',
                                reply_markup=successfully_created_collection_kb)
 
 @collection_router.callback_query(F.data.startswith('show_collections_list:'))
-async def show_collection_list_page(callback: CallbackQuery, user: User, session: AsyncSession):
+async def show_collection_list_page(callback: CallbackQuery, current_user: User, session: AsyncSession):
     page_size = 4
     page = callback.data.split(':')[1]
 
@@ -48,13 +50,30 @@ async def show_collection_list_page(callback: CallbackQuery, user: User, session
 
     offset = (page - 1) * page_size
 
-    collections, has_next_page, total_pages = await get_collection_list_page(session, user, page, page_size)
+    collections, has_next_page, total_pages = await get_collection_list_page(session, current_user, page, page_size)
 
-    collection_list = '\n'.join([f'{offset + num + 1}. {i.name}'
-                                 for num, i in enumerate(collections)])
-    caption_text = safe_md(f'Page {page}/{total_pages}\n\n{collection_list}')
+    text_parts = ['*Коллекции*\n']
+    for col, count in collections:
+        text_parts.append(
+            f'📌 *{safe_md(col.name)}*\n'
+            f'   📖 Number of recipes: {count}\n'
+        )
+    collection_list = '\n'.join(text_parts)
+
+    caption_text = f'Page {page}/{total_pages}\n\n{collection_list}'
     await callback.message.edit_media(media=InputMediaPhoto(media=FSInputFile(pics['list']),
                                                             caption=caption_text,
                                                             parse_mode=ParseMode.MARKDOWN_V2),
                                       reply_markup=get_collection_list_kb(collections, offset, page, has_next_page))
     await callback.answer()
+
+@collection_router.callback_query(CollectionsCb.filter(F.action.startswith('manage')))
+async def manage_collection(callback: CallbackQuery, callback_data: CollectionsCb,
+                            current_user: User, session: AsyncSession):
+    photo = FSInputFile(pics['adding'])
+    caption_text = 'Choose action'
+    await callback.message.edit_media(InputMediaPhoto(media=photo,
+                                                      caption=caption_text),
+                                      reply_markup=manage_collection_options_kb(callback_data.collection_id,
+                                                                                callback_data.collection_name,
+                                                                                current_user, callback_data.page))

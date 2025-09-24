@@ -51,11 +51,12 @@ async def new_recipe(callback: CallbackQuery):
     )
 
 @main_router.callback_query(F.data == 'list')
-async def list_recipe(callback: CallbackQuery, collection: Collection, session: AsyncSession):
+async def list_recipe(callback: CallbackQuery, active_collection: Collection, session: AsyncSession):
     page = 1
-    offset = (page - 1) * 12
+    page_size = 12
+    offset = (page - 1) * page_size
 
-    recipes, has_next, total_pages = await get_list_page(session, collection, page)
+    recipes, has_next, total_pages = await get_list_page(session, active_collection, page, page_size)
 
     if not recipes:
         await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['list']),

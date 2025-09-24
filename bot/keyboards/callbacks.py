@@ -1,5 +1,7 @@
 from aiogram.filters.callback_data import CallbackData
 
+from bot.db.models import Collection
+
 class RecipeCb(CallbackData, prefix='recipe'):
     recipe_id: int
     action: str | None = None
@@ -13,6 +15,9 @@ class RecipeCb(CallbackData, prefix='recipe'):
 class CollectionsCb(CallbackData, prefix='collection'):
     action: str | None = None
     page : int | None = None
+    collection_id: int | None = None
+    collection_name: str | None = None
+
 
 class DbUserCb(CallbackData, prefix='user'):
     user_id: int

@@ -8,7 +8,10 @@ from bot.db.models import User, Collection
 
 class DbUserMiddleware(BaseMiddleware):
    async def __call__(self, handler, event: Message | CallbackQuery, data: dict):
-        session :  AsyncSession = data.get('session')
+        if event.message and event.message.text == '/start':
+            return await handler(event, data)
+
+        session:  AsyncSession = data.get('session')
 
         tg_id = None
         if event.message:
@@ -22,12 +25,14 @@ class DbUserMiddleware(BaseMiddleware):
         if not user:
             raise RuntimeError(f"User {tg_id} not found in DB")
 
-        collection = await session.get(Collection, user.active_collection_id)
+        active_collection = await session.get(Collection, user.active_collection_id)
+        base_collection = await session.get(Collection, user.user_base_collection_id)
 
-        if not collection:
+        if not active_collection:
             raise RuntimeError(f"Collection {user.active_collection_id} not found for user {tg_id}")
 
-        data["user"] = user
-        data["collection"] = collection
+        data["current_user"] = user #current_
+        data["active_collection"] = active_collection #active_
+        data['base_collection_id'] = base_collection.collection_id
 
         return await handler(event, data)

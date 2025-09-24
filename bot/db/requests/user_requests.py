@@ -25,5 +25,6 @@ async def init_new_user(session: AsyncSession, tg_id: BigInteger, user_name: str
         await session.flush()
 
         user.active_collection_id = collection.collection_id
+        user.user_base_collection_id = collection.collection_id
 
         await session.commit()
