@@ -16,7 +16,6 @@ class CollectionsCb(CallbackData, prefix='collection'):
     action: str | None = None
     page : int | None = None
     collection_id: int | None = None
-    collection_name: str | None = None
 
 
 class DbUserCb(CallbackData, prefix='user'):

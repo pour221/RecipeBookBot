@@ -19,3 +19,6 @@ class EditRecipe(StatesGroup):
 
 class FeedbackForm(StatesGroup):
     waiting_for_message = State()
+
+class RenameCollection(StatesGroup):
+    waiting_new_collection_name = State()

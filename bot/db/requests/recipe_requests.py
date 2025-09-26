@@ -19,12 +19,12 @@ async def add_new_recipe(session: AsyncSession, user, name,
 async def quick_add_new_recipe(session: AsyncSession, user, collection, name, description):
     await add_new_recipe(session,  user, name, collection, description, None, None, None)
 
-async def get_list_page(session: AsyncSession, collection, page, page_size):
-    total = await session.scalars(select(Recipe).where(Recipe.collection_id == collection.collection_id))
+async def get_list_page(session: AsyncSession, collection_id, page, page_size):
+    total = await session.scalars(select(Recipe).where(Recipe.collection_id == collection_id))
 
     stmt = (
             select(Recipe)
-            .where(Recipe.collection_id == collection.collection_id)
+            .where(Recipe.collection_id == collection_id)
             .limit(page_size+1)
             .offset((page-1)*page_size)
         )

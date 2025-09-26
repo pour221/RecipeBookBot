@@ -6,9 +6,9 @@ from bot.keyboards.main_keyboard import main_menu_kb
 from data.configs import pics
 
 
-async def show_main_menu(event):
+async def show_main_menu(event, active_collection_name='Base'):
     photo = FSInputFile(pics['main'])
-    caption_text = 'Main menu of *your recipe book*'
+    caption_text = f'Main menu of *your recipe book*\n\nActive collection is *{active_collection_name}*'
 
     if isinstance(event, Message):
         await event.answer_photo(photo=photo,

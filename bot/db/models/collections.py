@@ -20,5 +20,5 @@ class Collection(Base):
 
 
     user: Mapped["User"] = relationship(back_populates="collections", foreign_keys=[user_id])
-    recipes: Mapped[List['Recipe']] = relationship(back_populates='collection')
+    recipes: Mapped[List['Recipe']] = relationship(back_populates='collection', cascade="all, delete-orphan")
 

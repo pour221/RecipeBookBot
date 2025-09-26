@@ -61,13 +61,12 @@ async def quick_add(callback: CallbackQuery):
     await callback.answer('New amazing options will be here very soon. Stay tuned!')
 
 @recipe_router.callback_query(F.data.startswith("list_page:"))
-async def next_page(callback: CallbackQuery, current_user: User,
-                    active_collection: Collection, session: AsyncSession):
+async def next_page(callback: CallbackQuery, active_collection: Collection, session: AsyncSession):
     page_size = 12
     page = int(callback.data.split(':')[1])
     offset = (page - 1) * page_size
 
-    recipes, has_next, total_pages = await get_list_page(session, active_collection, page, page_size)
+    recipes, has_next, total_pages = await get_list_page(session, active_collection.collection_id, page, page_size)
 
     recipes_list = '\n'.join([f'{offset + num + 1}. {i.recipe_name}' for num, i in enumerate(recipes)])
     caption_text = safe_md(f'{len(recipes)} recipes are displayed. Use the menu to view the rest\n\nPage {page}/{total_pages}\n\n{recipes_list}')

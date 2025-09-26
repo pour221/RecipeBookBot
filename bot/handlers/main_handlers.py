@@ -22,24 +22,24 @@ main_router = Router()
 
 @main_router.message(CommandStart())
 async def cmd_start(message: Message, session: AsyncSession):
-    await init_new_user(session, message.from_user.id,
+    collection = await init_new_user(session, message.from_user.id,
                            message.from_user.username,
                    f'{message.from_user.first_name} {message.from_user.last_name}',
                           message.from_user.is_premium)
 
-    await show_main_menu(message)
+    await show_main_menu(message, collection.name)
 
 @main_router.message(Command('cancel'))
-async def cancel_command(message: Message, state: FSMContext):
+async def cancel_command(message: Message, state: FSMContext, active_collection):
     await state.clear()
     await message.answer('Action canceled')
-    await show_main_menu(message)
+    await show_main_menu(message, active_collection.name)
 
 @main_router.callback_query(F.data == 'main_menu')
-async def main_menu(callback: CallbackQuery, state: FSMContext):
+async def main_menu(callback: CallbackQuery, state: FSMContext, active_collection):
     await callback.answer()
     await state.clear()
-    await show_main_menu(callback)
+    await show_main_menu(callback, active_collection.name)
 
 @main_router.callback_query(F.data == 'new_recipe')
 async def new_recipe(callback: CallbackQuery):
@@ -56,7 +56,7 @@ async def list_recipe(callback: CallbackQuery, active_collection: Collection, se
     page_size = 12
     offset = (page - 1) * page_size
 
-    recipes, has_next, total_pages = await get_list_page(session, active_collection, page, page_size)
+    recipes, has_next, total_pages = await get_list_page(session, active_collection.collection_id, page, page_size)
 
     if not recipes:
         await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['list']),
@@ -97,7 +97,10 @@ async def collections_menu(callback: CallbackQuery, session: AsyncSession):
 @main_router.callback_query(F.data == 'help')
 async def help_msg(callback: CallbackQuery):
     photo = FSInputFile(pics['main'])
-    caption_text =('This is Bot to store your favorite recipe\\.\n*This is test description*\n'
+    caption_text =("This is your recipe book\\. Just like the one many people have in their kitchens, only right here in "
+                   "Telegram \\. You can write down recipes so you don't lose them, share them, create your own recipe "
+                   "collections, and much more \\. Some features aren't available yet, but they'll be coming soon\\. This is "
+                   "Bot to store your favorite recipe\\.\n*This is test description*\n"
                            'Commands:\n'
                            '/start \\- start bot and calling main menu\n'
                            '/cancel \\- cancel current action and return to main menu')
@@ -111,7 +114,7 @@ async def get_feedback_from_user(callback: CallbackQuery, state: FSMContext):
     await state.set_state(FeedbackForm.waiting_for_message)
     photo = FSInputFile(pics['adding'])
     caption_text = ("Write your feedback: Write what you like, what you don't like, what you would like to add, "
-                    "and what seems unnecessary and, in your opinion, can be removed.")
+                    "and what seems unnecessary and, in your opinion, can be removed")
     await callback.message.edit_media(media=InputMediaPhoto(media=photo,
                                                             caption=caption_text))
     await callback.answer()

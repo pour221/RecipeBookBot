@@ -28,3 +28,9 @@ async def init_new_user(session: AsyncSession, tg_id: BigInteger, user_name: str
         user.user_base_collection_id = collection.collection_id
 
         await session.commit()
+
+        return collection
+
+    else:
+        collection = await session.scalar(select(Collection).where(Collection.collection_id == user.active_collection_id))
+        return collection

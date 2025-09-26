@@ -1,4 +1,5 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from sqlalchemy.cyextension.util import cache_anon_map
 
 from bot.keyboards.callbacks import CollectionsCb
 from bot.keyboards.main_keyboard import main_menu_btn
@@ -17,16 +18,15 @@ successfully_created_collection_kb = InlineKeyboardMarkup(inline_keyboard=[
     [main_menu_btn]
 ])
 
-def get_collection_list_kb(collections, offset, page: int, has_next: bool):
+def get_collection_list_kb(collections, page: int, has_next: bool, action: str): # TODO: remove offset params. Check handlers to avoid error
     collections_buttons = []
     collection_row = []
 
     for collection, num in collections:
         collection_row.append(InlineKeyboardButton(text=collection.name,
-                                                         callback_data=CollectionsCb(action=f'manage',
-                                                                                     page=page,
-                                                                                     collection_id=collection.collection_id,
-                                                                                     collection_name=collection.name).pack()))
+                                                    callback_data=CollectionsCb(action=action,
+                                                                                page=page,
+                                                                                collection_id=collection.collection_id).pack()))
         if len(collection_row) == 2:
             collections_buttons.append(collection_row)
             collection_row = []
@@ -47,10 +47,34 @@ def get_collection_list_kb(collections, offset, page: int, has_next: bool):
 
 def manage_collection_options_kb(collection_id, collection_name, page, user):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text='Rename collection', callback_data='1')],
-        [InlineKeyboardButton(text=f'Set {collection_name} as active', callback_data='2')],
-        [InlineKeyboardButton(text='Show recipes', callback_data='3')],
-        [InlineKeyboardButton(text='Delete this collection', callback_data='4')],
+        [InlineKeyboardButton(text='Rename collection', callback_data=CollectionsCb(action='rename_collection',
+                                                                                    collection_id=collection_id,
+                                                                                    page=page).pack())],
+        [InlineKeyboardButton(text=f'Set {collection_name} collection as active', callback_data=CollectionsCb(action='set_active',
+                                                                                                 collection_id=collection_id,
+                                                                                                 page=page).pack())],
+        [InlineKeyboardButton(text='Show recipes', callback_data=CollectionsCb(action='show_collection_recipe',
+                                                                               collection_id=collection_id,
+                                                                               page=page).pack())],
+        [InlineKeyboardButton(text='Delete this collection', callback_data=CollectionsCb(action='delete_collection',
+                                                                                         collection_id=collection_id,
+                                                                                         page=page).pack())],
         [InlineKeyboardButton(text='>Back to collections<', callback_data=f'show_collections_list:{page}')],
         [main_menu_btn]
+    ])
+
+def successfully_change_active_collection_kb(page):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text='Go to collection list', callback_data=f'show_collections_list:{page}')],
+        [main_menu_btn]
+    ])
+
+def get_collection_delete_confirmation_kb(page, collection_id):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text='Yes', callback_data=CollectionsCb(action='confirmed_collection_deletion',
+                                                                      page=page,
+                                                                      collection_id=collection_id).pack())],
+        [InlineKeyboardButton(text='No', callback_data=CollectionsCb(action='manage',
+                                                                     page=page,
+                                                                     collection_id=collection_id).pack())]
     ])
