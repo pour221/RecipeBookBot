@@ -58,7 +58,7 @@ def manage_collection_options_kb(collection_id, collection_name, page, user):
         [InlineKeyboardButton(text='Delete this collection', callback_data=CollectionsCb(action='delete_collection',
                                                                                          collection_id=collection_id,
                                                                                          page=page).pack())],
-        [InlineKeyboardButton(text='>Back to collections<', callback_data=f'show_collections_list:{page}')],
+        [InlineKeyboardButton(text='> Back to collections <', callback_data=f'show_collections_list:{page}')],
         [main_menu_btn]
     ])
 

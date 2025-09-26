@@ -1,0 +1,75 @@
+{
+  "main_menu_btn": {
+    "main_menu": ">> Main menu <<",
+    "list": "Recipes list",
+    "new": "Add new recipe",
+    "find": "Find recipe",
+    "random": "Random recipe" ,
+    "collections": "My collections",
+    "change": "Change of collection",
+    "help": "Help",
+    "feedback": "Feedback"
+  },
+  "main_menu_text": {"main": "Main menu of *your recipe book*\\n\\nActive collection is {collection_name}"},
+
+  "recipe_list_btm" : {"collections": "> Go to collections <"},
+  "recipe_list_text" : {
+    "displayed" :  "{recipe_number} recipes are displayed. Use the menu to view the rest",
+    "page" : "page"
+  },
+
+  "recipe_options_btn" : {
+    "choose_recipe" : "Choose another recipe",
+    "edit" : "Edit recipe",
+    "delete": "Delete recipe",
+    "back_to_list": "Back to list"
+  },
+"delete_text": {
+  "delete_question": "Are you sure you want to delete the {recipe_name} recipe?",
+  "delete_confirmation": "The recipe {recipe_name} has been deleted"
+},
+  "editable_fields" : {
+    "title" : "Title",
+    "description" : "Descriptions",
+    "ingredients" : "Ingredients",
+    "equipments": "Equipments",
+    "photo": "Photo"
+  },
+  "editing_text" : {
+    "choose_what": "Choose what to change in the recipe",
+    "write":"Write new {field}"
+  },
+  "adding_btm" : {
+    "quick": "Quick add",
+    "detail": "Detailed add",
+    "new_options": "New options will be here soon"
+  },
+  "quick_add_text": {
+    "title": "Write recipe title:",
+    "description": "Write your recipe description:"
+  },
+  "successfully_added": {
+    "quick": "Quick add another recipe",
+    "detail": "Detail add another recipe",
+    "to_list": "Go to recipe list"
+  },
+  "collection_menu_btm" : {
+    "manage": "Manage my collections",
+    "create" : "Create new collection"
+  },
+  "collection_menu_text": {"collection_prompt": "Choose what you want to do"},
+  "collections_list_text": {
+    "collection": "collection",
+    "sample": "{collection_name}\n   Number of recipes: {number}"
+  },
+  "collection_options_btm": {
+    "rename": "Rename collection",
+    "set": "Set {collection_name} collection as active",
+    "show": "Show recipes",
+    "delete": "Delete this collection",
+    "back": "> Back to collections <"
+  },
+
+  "collection_options_text": {"text": "Choose action for collection {collection_name}"},
+  "command_action" : {"cancel" : "Action canceled"}
+}

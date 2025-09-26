@@ -91,11 +91,14 @@ async def show_recipe_list_page(callback: CallbackQuery, callback_data: RecipeLi
 
 
 @recipe_router.callback_query(RecipeCb.filter(F.action == "show_recipe"))
-async def show_recipe(callback: CallbackQuery, callback_data: RecipeCb, session: AsyncSession):
+async def show_recipe(callback: CallbackQuery, callback_data: RecipeCb, active_collection: Collection,
+                      session: AsyncSession):
     recipe = await get_recipe_by_id(session, callback_data.recipe_id)
 
     if not recipe:
-        await callback.messsage.answer("Recipe not found")
+        await callback.message.answer("Recipe not found")
+        await show_main_menu(callback, active_collection.name, True)
+
         return
 
     recipe_msg = f'*{safe_md(recipe.recipe_name.title())}*\n\n{safe_md(recipe.descriptions)}'
