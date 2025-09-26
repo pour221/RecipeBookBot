@@ -12,6 +12,11 @@ class RecipeCb(CallbackData, prefix='recipe'):
     ingredient: str | None = None
     equipment: str | None = None
 
+class RecipeListCb(CallbackData, prefix='recipe_list'):
+    action : str
+    collection_id : int | None = None
+    page: int | None = None
+
 class CollectionsCb(CallbackData, prefix='collection'):
     action: str | None = None
     page : int | None = None

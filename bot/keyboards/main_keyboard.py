@@ -1,9 +1,12 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
+from bot.keyboards.callbacks import RecipeListCb
+
 main_menu_btn = InlineKeyboardButton(text='>> Main menu <<', callback_data='main_menu')
 
 main_menu_kb = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Recipes list', callback_data='list')],
+    [InlineKeyboardButton(text='Recipes list', callback_data=RecipeListCb(action='list_page',
+                                                                          page=1).pack())],
     [InlineKeyboardButton(text='Add new recipe', callback_data='new_recipe')],
     [InlineKeyboardButton(text='Find recipe', callback_data='find'),
      InlineKeyboardButton(text='Random recipe', callback_data='random')],

@@ -13,11 +13,14 @@ from bot.keyboards.recipes_keyboard import (get_recipe_option_kb, get_recipe_lis
                                             get_confirm_delete_kb, get_edit_options_kb,
                                             AVAILABLE_RECIPE_FIELDS, successfully_update_recipe_field_options,
                                             successfully_delete_recipe_options, successfully_added_recipe_kb) # add_recipes_keyboard
-from bot.keyboards.callbacks import RecipeCb
+from bot.keyboards.callbacks import RecipeCb, RecipeListCb
 from bot.services.main_menu import show_main_menu
 from bot.utils.formatting import safe_md
 from bot.db.models import User, Collection
+from bot.services.recipe_list import render_recipe_list
+
 from data.configs import pics
+
 
 recipe_router = Router()
 
@@ -60,21 +63,32 @@ async def quick_add(callback: CallbackQuery):
 async def quick_add(callback: CallbackQuery):
     await callback.answer('New amazing options will be here very soon. Stay tuned!')
 
-@recipe_router.callback_query(F.data.startswith("list_page:"))
-async def next_page(callback: CallbackQuery, active_collection: Collection, session: AsyncSession):
+@recipe_router.callback_query(RecipeListCb.filter(F.action == 'list_page'))
+async def show_recipe_list_page(callback: CallbackQuery, callback_data: RecipeListCb, active_collection: Collection, session: AsyncSession):
     page_size = 12
-    page = int(callback.data.split(':')[1])
+    collection_id = callback_data.collection_id
+    page = callback_data.page
+
+    if not collection_id:
+        collection_id = active_collection.collection_id
+    else:
+        collection_id = int(collection_id)
+
+    if not page:
+        page = 1
+    else:
+        page = int(page)
+
     offset = (page - 1) * page_size
-
-    recipes, has_next, total_pages = await get_list_page(session, active_collection.collection_id, page, page_size)
-
-    recipes_list = '\n'.join([f'{offset + num + 1}. {i.recipe_name}' for num, i in enumerate(recipes)])
+    recipes_list, recipes, has_next, total_pages = await render_recipe_list(session, page, page_size, collection_id)
     caption_text = safe_md(f'{len(recipes)} recipes are displayed. Use the menu to view the rest\n\nPage {page}/{total_pages}\n\n{recipes_list}')
     await callback.message.edit_media(media=InputMediaPhoto(media=FSInputFile(pics['list']),
                                                             caption=caption_text,
                                                             parse_mode=ParseMode.MARKDOWN_V2),
-                                  reply_markup=get_recipe_list_kb(recipes, offset, page, has_next))
+                                      reply_markup=get_recipe_list_kb(recipes, offset, page, has_next, collection_id))
     await callback.answer()
+
+
 
 @recipe_router.callback_query(RecipeCb.filter(F.action == "show_recipe"))
 async def show_recipe(callback: CallbackQuery, callback_data: RecipeCb, session: AsyncSession):

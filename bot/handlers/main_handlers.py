@@ -114,7 +114,7 @@ async def get_feedback_from_user(callback: CallbackQuery, state: FSMContext):
     await state.set_state(FeedbackForm.waiting_for_message)
     photo = FSInputFile(pics['adding'])
     caption_text = ("Write your feedback: Write what you like, what you don't like, what you would like to add, "
-                    "and what seems unnecessary and, in your opinion, can be removed")
+                    "and what seems unnecessary and, in your opinion, can be removed\\.\n\n/cancel - to cancel this action")
     await callback.message.edit_media(media=InputMediaPhoto(media=photo,
                                                             caption=caption_text))
     await callback.answer()

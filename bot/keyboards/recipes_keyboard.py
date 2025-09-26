@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from bot.keyboards.callbacks import RecipeCb
+from bot.keyboards.callbacks import RecipeCb, RecipeListCb
 from bot.keyboards.main_keyboard import main_menu_btn
 # static variables and keyboards
 AVAILABLE_RECIPE_FIELDS = {
@@ -20,7 +20,6 @@ no_recipe_kb = InlineKeyboardMarkup(inline_keyboard=[
 add_recipes_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Quick add', callback_data='quick_add')],
     [InlineKeyboardButton(text='Detailed add', callback_data='detailed_add')],
-    [InlineKeyboardButton(text='Generate new recipe with AI', callback_data='ai_generate')],
     [InlineKeyboardButton(text='New options will be here soon', callback_data='new_option')],
     [main_menu_btn]
 ])
@@ -33,7 +32,7 @@ successfully_added_recipe_kb = InlineKeyboardMarkup(inline_keyboard=[
 ])
 
 # dynamic keyboards
-def get_recipe_list_kb(recipes, offset, page: int, has_next: bool) -> InlineKeyboardMarkup:
+def get_recipe_list_kb(recipes, offset, page: int, has_next: bool, collection_id: int, collection_list_page=1) -> InlineKeyboardMarkup:
     recipes_buttons = []
     recipe_row = []
     for idx, recipe in enumerate(recipes, start=1):
@@ -51,11 +50,16 @@ def get_recipe_list_kb(recipes, offset, page: int, has_next: bool) -> InlineKeyb
     page_buttons = []
 
     if page > 1:
-        page_buttons.append(InlineKeyboardButton(text='<', callback_data=f"list_page:{page-1}"))
+        page_buttons.append(InlineKeyboardButton(text='<', callback_data=RecipeListCb(action='list_page',
+                                                                                      page=page-1,
+                                                                                      collection_id=collection_id).pack())) #f"list_page:{page-1}"
     if has_next:
-        page_buttons.append(InlineKeyboardButton(text='>', callback_data=f"list_page:{page+1}"))
+        page_buttons.append(InlineKeyboardButton(text='>', callback_data=RecipeListCb(action='list_page',
+                                                                                      page=page+1,
+                                                                                      collection_id=collection_id).pack())) #f"list_page:{page+1}"
 
     recipes_buttons.append(page_buttons)
+    recipes_buttons.append([InlineKeyboardButton(text='> Go to collections <', callback_data=f'show_collections_list:{collection_list_page}')])
     recipes_buttons.append([main_menu_btn])
     return InlineKeyboardMarkup(inline_keyboard=recipes_buttons)
 

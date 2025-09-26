@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from sqlalchemy.cyextension.util import cache_anon_map
 
-from bot.keyboards.callbacks import CollectionsCb
+from bot.keyboards.callbacks import CollectionsCb, RecipeListCb
 from bot.keyboards.main_keyboard import main_menu_btn
 
 collections_menu_keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -18,7 +18,7 @@ successfully_created_collection_kb = InlineKeyboardMarkup(inline_keyboard=[
     [main_menu_btn]
 ])
 
-def get_collection_list_kb(collections, page: int, has_next: bool, action: str): # TODO: remove offset params. Check handlers to avoid error
+def get_collection_list_kb(collections, page: int, has_next: bool, action: str):
     collections_buttons = []
     collection_row = []
 
@@ -53,9 +53,8 @@ def manage_collection_options_kb(collection_id, collection_name, page, user):
         [InlineKeyboardButton(text=f'Set {collection_name} collection as active', callback_data=CollectionsCb(action='set_active',
                                                                                                  collection_id=collection_id,
                                                                                                  page=page).pack())],
-        [InlineKeyboardButton(text='Show recipes', callback_data=CollectionsCb(action='show_collection_recipe',
-                                                                               collection_id=collection_id,
-                                                                               page=page).pack())],
+        [InlineKeyboardButton(text='Show recipes', callback_data=RecipeListCb(action='list_page',
+                                                                              collection_id=collection_id).pack())],
         [InlineKeyboardButton(text='Delete this collection', callback_data=CollectionsCb(action='delete_collection',
                                                                                          collection_id=collection_id,
                                                                                          page=page).pack())],
@@ -66,6 +65,8 @@ def manage_collection_options_kb(collection_id, collection_name, page, user):
 def successfully_change_active_collection_kb(page):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text='Go to collection list', callback_data=f'show_collections_list:{page}')],
+        [InlineKeyboardButton(text='Add new recipe', callback_data=f'new_recipe')],
+        [InlineKeyboardButton(text='Show recipes', callback_data=RecipeListCb(action='list_page').pack())],
         [main_menu_btn]
     ])
 
