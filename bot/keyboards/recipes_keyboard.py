@@ -3,6 +3,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from bot.keyboards.callbacks import RecipeCb, RecipeListCb
 from bot.keyboards.main_keyboard import main_menu_btn
 # static variables and keyboards
+
 AVAILABLE_RECIPE_FIELDS = {
     'recipe_name': 'Title',
     'descriptions': 'Description',
@@ -10,19 +11,6 @@ AVAILABLE_RECIPE_FIELDS = {
     'equipments': 'Equipments',
     'photos': 'Photo'
 }
-
-no_recipe_kb = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Quick add', callback_data='quick_add')],
-    [InlineKeyboardButton(text='Detailed add', callback_data='detailed_add')],
-    [main_menu_btn]
-])
-
-add_recipes_keyboard = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Quick add', callback_data='quick_add')],
-    [InlineKeyboardButton(text='Detailed add', callback_data='detailed_add')],
-    [InlineKeyboardButton(text='New options will be here soon', callback_data='new_option')],
-    [main_menu_btn]
-])
 
 successfully_added_recipe_kb = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Quick add another recipe', callback_data='quick_add')],
@@ -62,6 +50,20 @@ def get_recipe_list_kb(recipes, offset, page: int, has_next: bool, collection_id
     recipes_buttons.append([InlineKeyboardButton(text='> Go to collections <', callback_data=f'show_collections_list:{collection_list_page}')])
     recipes_buttons.append([main_menu_btn])
     return InlineKeyboardMarkup(inline_keyboard=recipes_buttons)
+
+def get_add_recipes_keyboard(translation):
+    return InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text=translation('adding_btm.quick'), callback_data='quick_add')],
+    [InlineKeyboardButton(text=translation('adding_btm.detail'), callback_data='detailed_add')],
+    [InlineKeyboardButton(text=translation('adding_btm.new_options'), callback_data='new_option')],
+    [main_menu_btn]
+])
+def get_no_recipe_kb(translation):
+    return InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text=translation('adding_btm.quick'), callback_data='quick_add')],
+    [InlineKeyboardButton(text=translation('adding_btm.detail'), callback_data='detailed_add')],
+    [main_menu_btn]
+])
 
 def get_recipe_option_kb(recipe_id: int, page: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[

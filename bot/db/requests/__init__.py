@@ -5,6 +5,7 @@ from .recipe_requests import *
 __all__ = [
     # user_requests
     'init_new_user',
+    'change_language',
     # collection_requests
     'create_new_collection',
     # recipe_requests

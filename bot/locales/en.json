@@ -10,12 +10,12 @@
     "help": "Help",
     "feedback": "Feedback"
   },
-  "main_menu_text": {"main": "Main menu of *your recipe book*\\n\\nActive collection is {collection_name}"},
+  "main_menu_text": {"main": "Main menu of *your recipe book*\n\nActive collection is *{collection_name}*"},
 
   "recipe_list_btm" : {"collections": "> Go to collections <"},
   "recipe_list_text" : {
-    "displayed" :  "{recipe_number} recipes are displayed. Use the menu to view the rest",
-    "page" : "page"
+    "displayed" :  "{recipe_number} recipes are displayed\\. Use the menu to view the rest\n\nPage {page}/{total_pages}\n\n{recipes_list}'",
+    "not_found" : "Recipe not found"
   },
 
   "recipe_options_btn" : {
@@ -44,9 +44,14 @@
     "detail": "Detailed add",
     "new_options": "New options will be here soon"
   },
+  "adding_text": {
+    "menu_text":  "Choose adding option",
+    "no_recipe": "You do not have any recipes"
+  },
   "quick_add_text": {
-    "title": "Write recipe title:",
-    "description": "Write your recipe description:"
+    "title": "Write recipe *title*:",
+    "description": "Write your recipe description:",
+    "success": "Your recipe *\"{name}\"* has been added \\!"
   },
   "successfully_added": {
     "quick": "Quick add another recipe",
@@ -69,7 +74,14 @@
     "delete": "Delete this collection",
     "back": "> Back to collections <"
   },
-
   "collection_options_text": {"text": "Choose action for collection {collection_name}"},
+  "help": {
+    "text": "This is your recipe book\\. Just like the one many people have in their kitchens, only right here in Telegram \\. You can write down recipes so you don't lose them, share them, create your own recipe collections, and much more \\. Some features aren't available yet, but they'll be coming soon\\. This is Bot to store your favorite recipes\\.\n*This is test description*\nCommands:\n/start \\- start bot and calling main menu\n/cancel \\- cancel current action and return to main menu"
+
+  },
+  "feedback": {
+    "text": "Write your feedback: write what you like, what you don't like, what you would like to add, and what seems unnecessary and, in your opinion, can be removed\\.\n\n/cancel - to cancel this action",
+    "thanks": "Thank you for your feedback! Your message has been sent, we're working hard to get better!"
+  },
   "command_action" : {"cancel" : "Action canceled"}
 }

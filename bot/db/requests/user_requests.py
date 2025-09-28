@@ -1,10 +1,10 @@
 from datetime import datetime
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.types import BigInteger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.db.session import async_session
 from bot.db.models import User, Collection
+
 
 
 async def init_new_user(session: AsyncSession, tg_id: BigInteger, user_name: str, fullname: str, tg_premium: bool):
@@ -29,8 +29,12 @@ async def init_new_user(session: AsyncSession, tg_id: BigInteger, user_name: str
 
         await session.commit()
 
-        return collection
+    #     return collection, user
+    #
+    # else:
+    #     collection = await session.scalar(select(Collection).where(Collection.collection_id == user.active_collection_id))
+    #     return collection, user
 
-    else:
-        collection = await session.scalar(select(Collection).where(Collection.collection_id == user.active_collection_id))
-        return collection
+async def change_language(session: AsyncSession, user_id: int, lang: str):
+    await session.execute(update(User).where(User.id == user_id).values(language=lang))
+    await session.commit()

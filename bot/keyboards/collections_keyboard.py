@@ -1,5 +1,4 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from sqlalchemy.cyextension.util import cache_anon_map
 
 from bot.keyboards.callbacks import CollectionsCb, RecipeListCb
 from bot.keyboards.main_keyboard import main_menu_btn

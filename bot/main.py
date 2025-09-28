@@ -8,6 +8,7 @@ from bot.handlers.collection_handlers import collection_router
 from bot.db.session import async_main, async_session
 from bot.middlewares.session_middleware import DbSessionMiddleware
 from bot.middlewares.user_middleware import DbUserMiddleware
+from bot.middlewares.init_user_middleware import InitUserMiddleware
 
 
 
@@ -18,6 +19,7 @@ async def main():
     dp = Dispatcher()
 
     dp.update.middleware(DbSessionMiddleware(async_session))
+    dp.update.middleware(InitUserMiddleware())
     dp.update.middleware(DbUserMiddleware())
 
     dp.include_router(main_router)
