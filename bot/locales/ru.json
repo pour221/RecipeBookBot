@@ -29,15 +29,17 @@
   "delete_confirmation": "Рецепт *{recipe_name}* удален"
 },
   "editable_fields" : {
-    "title" : "Название",
-    "description" : "Описание",
-    "ingredients" : "Ингридиенты",
+    "recipe_name" : "Название",
+    "descriptions" : "Описание",
+    "ingredients_table" : "Ингридиенты",
     "equipments": "Оборудование",
     "photo": "Фото"
   },
   "editing_text" : {
-    "choose_what": "Выберите, что хотите поменять",
-    "write":"Напишите {field}"
+    "choose_what": "*{recipe_name}*\n\n{descriptions}\n\nВыберите, что хотите поменять",
+    "write":"*{recipe_name}*\n\n{description}\n\n_Напишите {field}:_",
+    "success": "{field} успешно обновлено\nОбновленный рецепт:\n\n*{recipe_name}*\n\n{description}\n\n",
+     "unsuccess" : "Обновление не удалось: рецепт не может быть обновлен"
   },
   "adding_btm" : {
     "quick": "Быстрое добавление",
@@ -62,10 +64,15 @@
     "manage": "Управление коллекциями",
     "create" : "Create new collection"
   },
+    "collection_create_text": {
+    "invitation" : "Напишите название новой коллекции\n\n/cancel - отмена действия",
+    "success": "Новая коллекция была создана! Чтобы воспользоваться новой коллекцией, сделайте ее активной в меню"
+  },
   "collection_menu_text": {"collection_prompt": "Выберите, что хотите сделать"},
   "collections_list_text": {
-    "collection": "Коллекция",
-    "sample": "{collection_name}\n  Количество рецептов: {number}"
+    "collection": "*Коллекции*\n",
+    "sample": "\uD83D\uDCCC *{collection_name}*\n  \uD83D\uDCD6 Количество рецептов: {number}\n",
+    "list_msg": "Страница {page}/{total_pages}\n\n{collection_list}"
   },
   "collection_options_btm": {
     "rename": "Переименовать коллекцию",
@@ -82,6 +89,9 @@
       "thanks": "Спасибо за ваш отзыв! Ваше сообщение отправлено, мы работаем над улучшением!"
     },
 
-  "collection_options_text": {"text": "Выберите что сделать с коллекцией *{collection_name}*"},
+  "collection_options_text": {
+    "text": "Выберите что сделать с коллекцией *{collection_name}*",
+    "change": "Выбире коллекцию"
+  },
   "command_action" : {"cancel" : "Действие отменено"}
 }

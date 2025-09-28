@@ -95,7 +95,7 @@ async def receive_feedback(message: Message, state: FSMContext, translation, bot
     await state.clear()
 
 @main_router.callback_query(F.data.startswith('language:'))
-async def set_new_language(callback: CallbackQuery, session: AsyncSession, current_user, t,
+async def set_new_language(callback: CallbackQuery, session: AsyncSession, current_user,
                         active_collection):
     selected_language = callback.data.split(':')[1]
     await change_language(session, current_user.id, selected_language)
@@ -103,7 +103,7 @@ async def set_new_language(callback: CallbackQuery, session: AsyncSession, curre
     await session.refresh(current_user)
 
     current_language = current_user.language
-    t =  get_translation(current_language)
+    translation =  get_translation(current_language)
 
     await callback.answer()
-    await show_main_menu(callback, t, active_collection.name)
+    await show_main_menu(callback, translation, active_collection.name)

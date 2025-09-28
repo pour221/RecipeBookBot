@@ -8,7 +8,7 @@ from aiogram.enums import ParseMode
 
 from bot.db.requests import (quick_add_new_recipe, delete_recipe_by_id, get_list_page, get_recipe_by_id,
                              update_recipe)
-from bot.handlers.states import QuickRecipe, EditRecipe
+from bot.handlers.states import QuickRecipe, RecipeManage
 from bot.keyboards.recipes_keyboard import (get_recipe_option_kb, get_recipe_list_kb,
                                             get_confirm_delete_kb, get_edit_options_kb,
                                             AVAILABLE_RECIPE_FIELDS, successfully_update_recipe_field_options,
@@ -65,7 +65,10 @@ async def quick_add(callback: CallbackQuery):
 
 @recipe_router.callback_query(RecipeListCb.filter(F.action == 'list_page'))
 async def show_recipe_list_page(callback: CallbackQuery, callback_data: RecipeListCb,
-                                translation, active_collection: Collection, session: AsyncSession):
+                                translation, active_collection: Collection, session: AsyncSession,
+                                state: FSMContext):
+    await state.clear()
+
     page_size = 12
     collection_id = callback_data.collection_id
     page = callback_data.page
@@ -91,7 +94,6 @@ async def show_recipe_list_page(callback: CallbackQuery, callback_data: RecipeLi
         await callback.answer()
         return
 
-    # caption_text = safe_md(f'{len(recipes)} recipes are displayed. Use the menu to view the rest\n\nPage {page}/{total_pages}\n\n{recipes_list}')
     caption_text = translation('recipe_list_text.displayed', recipe_number=len(recipes), page=page, total_pages=total_pages,
                                recipes_list=safe_md(recipes_list))
 
@@ -105,8 +107,11 @@ async def show_recipe_list_page(callback: CallbackQuery, callback_data: RecipeLi
 
 @recipe_router.callback_query(RecipeCb.filter(F.action == "show_recipe"))
 async def show_recipe(callback: CallbackQuery, callback_data: RecipeCb, active_collection: Collection,
-                      translation, session: AsyncSession):
+                      translation, state: FSMContext, session: AsyncSession):
+    await state.set_state(RecipeManage.managing)
     recipe = await get_recipe_by_id(session, callback_data.recipe_id)
+
+    await state.update_data(recipe=recipe)
 
     if not recipe:
         await callback.message.answer(translation('recipe_list_text.not_found'))
@@ -120,68 +125,90 @@ async def show_recipe(callback: CallbackQuery, callback_data: RecipeCb, active_c
                                                       caption=recipe_msg,
                                                       parse_mode=ParseMode.MARKDOWN_V2),
                                       reply_markup=get_recipe_option_kb(callback_data.recipe_id, callback_data.page))
+
     await callback.answer()
 
-@recipe_router.callback_query(RecipeCb.filter(F.action == "edit_recipe"))
-async def  edit_recipe(callback: CallbackQuery, callback_data: RecipeCb, session: AsyncSession):
-    recipe = await get_recipe_by_id(session, callback_data.recipe_id)
-    caption_text = f'*{safe_md(recipe.recipe_name.title())}*\n\n{safe_md(recipe.descriptions)}\n\nChoose what to change in the recipe'
+@recipe_router.callback_query(RecipeManage.managing, RecipeCb.filter(F.action == "edit_recipe"))
+async def  edit_recipe(callback: CallbackQuery, callback_data: RecipeCb, translation, state: FSMContext):
+
+    context_data = await state.get_data()
+    recipe = context_data['recipe']
+    caption_text = translation('editing_text.choose_what', recipe_name=safe_md(recipe.recipe_name.title()),
+                                                           descriptions=safe_md(recipe.descriptions))
+
     await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['adding']),
                                                       caption=caption_text,
                                                       parse_mode=ParseMode.MARKDOWN_V2),
                                       reply_markup=get_edit_options_kb(callback_data.recipe_id, callback_data.page))
     await callback.answer()
 
-@recipe_router.callback_query(RecipeCb.filter(F.action == "delete_recipe"))
-async def delete_recipe(callback: CallbackQuery, callback_data: RecipeCb, session: AsyncSession):
-    recipe = await get_recipe_by_id(session, callback_data.recipe_id)
-    caption_text = f'Are you sure you want to delete the *{safe_md(recipe.recipe_name)}* recipe?'
+@recipe_router.callback_query(RecipeManage.managing, RecipeCb.filter(F.action == "delete_recipe"))
+async def delete_recipe(callback: CallbackQuery, callback_data: RecipeCb, translation, state: FSMContext):
+    context_data = await state.get_data()
+    recipe = context_data['recipe']
+
+    caption_text = translation('delete_text.delete_question', recipe_name=recipe.recipe_name)
     await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['adding']),
+
                                                       caption=caption_text,
                                                       parse_mode=ParseMode.MARKDOWN_V2),
                                       reply_markup=get_confirm_delete_kb(callback_data.recipe_id, callback_data.page))
     await callback.answer()
 
-@recipe_router.callback_query(RecipeCb.filter(F.action == "confirm_delete_recipe"))
-async def confirm_delete_recipe(callback: CallbackQuery, callback_data: RecipeCb, session: AsyncSession):
-    recipe = await get_recipe_by_id(session, callback_data.recipe_id)
-    caption_text = f'The recipe *{safe_md(recipe.recipe_name)}* has been deleted'
+@recipe_router.callback_query(RecipeManage.managing, RecipeCb.filter(F.action == "confirm_delete_recipe"))
+async def confirm_delete_recipe(callback: CallbackQuery, callback_data: RecipeCb, state: FSMContext,
+                                translation, session: AsyncSession):
+
+    context_data = await state.get_data()
+    recipe = context_data['recipe']
+    caption_text = translation('delete_text.delete_confirmation', recipe_name=recipe.recipe_name)
     await delete_recipe_by_id(session, recipe)
+
+    await state.clear()
     await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['adding']),
                                                       caption=caption_text,
                                                       parse_mode=ParseMode.MARKDOWN_V2),
                                       reply_markup=successfully_delete_recipe_options(callback_data.page))
     await callback.answer()
 
-@recipe_router.callback_query(F.data.startswith('edit_field:'))
-async def edit_recipe_field(callback: CallbackQuery, session:AsyncSession, state: FSMContext):
+@recipe_router.callback_query(RecipeManage.managing, F.data.startswith('edit_field:'))
+async def edit_recipe_field(callback: CallbackQuery, state: FSMContext, translation):
     _, field, recipe_id = callback.data.split(":")
-    recipe = await get_recipe_by_id(session, recipe_id)
-    caption_text = f'*{safe_md(recipe.recipe_name.title())}*\n\n{safe_md(recipe.descriptions)}\n\nWrite new {safe_md(AVAILABLE_RECIPE_FIELDS[field])}'
-    await state.update_data(recipe_id=int(recipe_id), field=field)
+
+    context_data = await state.get_data()
+    recipe = context_data['recipe']
+
+    # caption_text = f'*{safe_md(recipe.recipe_name.title())}*\n\n{safe_md(recipe.descriptions)}\n\nWrite new {safe_md(translation(f'editable_fields.{field}'))}'
+    caption_text = translation('editing_text.write', recipe_name=safe_md(recipe.recipe_name.title()),
+                                                     description=safe_md(recipe.descriptions),
+                                                     field=translation(f'editable_fields.{field}').lower())
+    await state.update_data(field=field)
     await callback.message.edit_media(
         InputMediaPhoto(media=FSInputFile(pics['adding']),
                         caption=caption_text,
                         parse_mode=ParseMode.MARKDOWN_V2)
     )
-    await state.set_state(EditRecipe.waiting_for_value)
+    await state.set_state(RecipeManage.waiting_for_value)
 
-@recipe_router.message(EditRecipe.waiting_for_value)
-async def update_recipe_field(message: Message, session: AsyncSession, state:FSMContext):
+@recipe_router.message(RecipeManage.waiting_for_value)
+async def update_recipe_field(message: Message, state:FSMContext, translation, session: AsyncSession):
     data = await state.get_data()
-    recipe_id = data['recipe_id']
+    recipe = data['recipe']
     field = data['field']
 
     kwargs = {field: message.text}
-    updated = await update_recipe(session, recipe_id, **kwargs)
+    updated = await update_recipe(session, recipe.recipe_id, **kwargs)
 
     if updated:
         msg_text = f'{AVAILABLE_RECIPE_FIELDS[field]} successfully updated\nUpdated recipe:\n\n*{safe_md(updated.recipe_name.title())}*\n\n{safe_md(updated.descriptions)}\n\n'
+        msg_text = translation('editing_text.success', field=translation(f'editable_fields.{field}').title(),
+                                                       recipe_name=safe_md(updated.recipe_name.title()),
+                                                       description=safe_md(updated.descriptions))
         await message.answer(text=msg_text,
-                             reply_markup=successfully_update_recipe_field_options(recipe_id),
+                             reply_markup=successfully_update_recipe_field_options(recipe.recipe_id),
                              parse_mode=ParseMode.MARKDOWN_V2)
     else:
-        await message.answer(f'Update failed: This recipe cannot be updated.')
+        await message.answer(translation('editing_text.unsuccess'))
 
-    await state.clear()
+    await state.set_state(RecipeManage.managing)
 

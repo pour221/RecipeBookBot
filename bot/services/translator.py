@@ -32,6 +32,8 @@ def get_translation(lang: str):
     def translation(key: str, **kwargs):
         key_components = key.split('.')
         phrases = LEXICONS.get(lang, {})
+        if not key_components[1]:
+            return phrases.get(key_components[0])
 
         if phrases:
             return phrases.get(key_components[0]).get(key_components[1]).format(**kwargs)

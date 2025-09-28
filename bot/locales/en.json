@@ -29,15 +29,17 @@
   "delete_confirmation": "The recipe {recipe_name} has been deleted"
 },
   "editable_fields" : {
-    "title" : "Title",
-    "description" : "Descriptions",
-    "ingredients" : "Ingredients",
+    "recipe_name" : "Title",
+    "descriptions" : "Descriptions",
+    "ingredients_table" : "Ingredients",
     "equipments": "Equipments",
     "photo": "Photo"
   },
   "editing_text" : {
-    "choose_what": "Choose what to change in the recipe",
-    "write":"Write new {field}"
+    "choose_what": "*{recipe_name}*\n\n*{descriptions}*\n\nChoose what to change in the recipe",
+    "write":"*{recipe_name}*\n\n{description}\n\n_Write new {field}:_",
+    "success": "{field} successfully updated\nUpdated recipe:\n\n*{recipe_name}*\n\n{description}\n\n",
+    "unsuccess" : "Update failed: This recipe cannot be updated"
   },
   "adding_btm" : {
     "quick": "Quick add",
@@ -62,10 +64,15 @@
     "manage": "Manage my collections",
     "create" : "Create new collection"
   },
+  "collection_create_text": {
+    "invitation" : "Write name for your new collection.\n\n/cancel - cancel this action",
+    "success": "A new collection has been created\\! To use it, change the active collection in the menu"
+  },
   "collection_menu_text": {"collection_prompt": "Choose what you want to do"},
   "collections_list_text": {
-    "collection": "collection",
-    "sample": "{collection_name}\n   Number of recipes: {number}"
+    "collection": "*Collections*\n",
+    "sample": "\uD83D\uDCCC *{collection_name}*\n   \uD83D\uDCD6Number of recipes: {number}\n",
+    "list_msg": "Page {page}/{total_pages}\n\n{collection_list}"
   },
   "collection_options_btm": {
     "rename": "Rename collection",
@@ -74,7 +81,10 @@
     "delete": "Delete this collection",
     "back": "> Back to collections <"
   },
-  "collection_options_text": {"text": "Choose action for collection {collection_name}"},
+  "collection_options_text": {
+    "text": "Choose action for collection {collection_name}",
+    "change": "Choose collection"
+  },
   "help": {
     "text": "This is your recipe book\\. Just like the one many people have in their kitchens, only right here in Telegram \\. You can write down recipes so you don't lose them, share them, create your own recipe collections, and much more \\. Some features aren't available yet, but they'll be coming soon\\. This is Bot to store your favorite recipes\\.\n*This is test description*\nCommands:\n/start \\- start bot and calling main menu\n/cancel \\- cancel current action and return to main menu"
 

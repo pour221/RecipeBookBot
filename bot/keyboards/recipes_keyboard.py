@@ -2,6 +2,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from bot.keyboards.callbacks import RecipeCb, RecipeListCb
 from bot.keyboards.main_keyboard import main_menu_btn
+
 # static variables and keyboards
 
 AVAILABLE_RECIPE_FIELDS = {
@@ -70,11 +71,11 @@ def get_recipe_option_kb(recipe_id: int, page: int) -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text='Choose another recipe', callback_data=f'list_page:{page}')],
 
         [InlineKeyboardButton(text='Edit recipe', callback_data=RecipeCb(action='edit_recipe',
-                                                                               recipe_id=recipe_id,
-                                                                               page=page).pack()), #f'edit_recipe:{recipe_id}'),
+                                                                         recipe_id=recipe_id,
+                                                                         page=page,).pack()), #f'edit_recipe:{recipe_id}'),
          InlineKeyboardButton(text='Delete recipe', callback_data=RecipeCb(action='delete_recipe',
-                                                                                 recipe_id=recipe_id,
-                                                                                 page=page).pack())] ,#f'delete_recipe:{recipe_id}:{page}')
+                                                                           recipe_id=recipe_id,
+                                                                           page=page).pack())] ,#f'delete_recipe:{recipe_id}:{page}')
 
         [main_menu_btn]
 ])
