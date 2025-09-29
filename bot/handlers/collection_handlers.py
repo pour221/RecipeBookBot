@@ -9,9 +9,9 @@ from bot.db.requests.collection_requests import (create_new_collection, get_coll
 
 from bot.handlers.states import NewCollection, RenameCollection
 from bot.db.models import User, Collection
-from bot.keyboards.collections_keyboard import (successfully_created_collection_kb, get_collection_list_kb,
+from bot.keyboards.collections_keyboard import (get_successfully_created_collection_kb, get_collection_list_kb,
                                                 manage_collection_options_kb, successfully_change_active_collection_kb,
-                                                get_collection_delete_confirmation_kb)
+                                                get_collection_delete_confirmation_kb, successfully_delete_collection_kb)
 from bot.utils.formatting import safe_md
 from bot.keyboards.callbacks import CollectionsCb
 
@@ -38,7 +38,7 @@ async def receiving_new_collection_name(message: Message, state: FSMContext,
     await state.clear()
     await message.answer_photo(photo=FSInputFile(pics['adding']),
                                caption=translation('collection_create_text.success'),
-                               reply_markup=successfully_created_collection_kb)
+                               reply_markup=get_successfully_created_collection_kb(translation))
 
 @collection_router.callback_query(F.data == 'quick_change_collection')
 async def quick_change_collection(callback: CallbackQuery, current_user: User,
@@ -51,7 +51,7 @@ async def quick_change_collection(callback: CallbackQuery, current_user: User,
     await callback.message.edit_media(InputMediaPhoto(media=photo,
                                                       caption=caption_text),
                                       reply_markup=get_collection_list_kb(collections, page, has_next_page,
-                                                                          'set_active'))
+                                                                          'set_active', translation))
     await callback.answer()
 
 @collection_router.callback_query(F.data.startswith('show_collections_list:'))
@@ -82,59 +82,61 @@ async def show_collection_list_page(callback: CallbackQuery, current_user: User,
     await callback.message.edit_media(media=InputMediaPhoto(media=FSInputFile(pics['list']),
                                                             caption=caption_text,
                                                             parse_mode=ParseMode.MARKDOWN_V2),
-                                      reply_markup=get_collection_list_kb(collections, page, has_next_page, 'manage'))
+                                      reply_markup=get_collection_list_kb(collections, page, has_next_page, 'manage',
+                                                                          translation))
     await callback.answer()
 
 @collection_router.callback_query(CollectionsCb.filter(F.action.startswith('manage')))
 async def manage_collection(callback: CallbackQuery, callback_data: CollectionsCb,
-                            current_user: User, session: AsyncSession):
+                            current_user: User, translation, session: AsyncSession):
 
     collection = await get_collection_by_id(session, callback_data.collection_id)
     photo = FSInputFile(pics['adding'])
-    caption_text = f'Choose action for collection *{safe_md(collection.name)}*'
+    caption_text = translation('collection_options_text.text', collection_name=safe_md(collection.name))
     await callback.message.edit_media(InputMediaPhoto(media=photo,
                                                       caption=caption_text,
                                                       parse_mode=ParseMode.MARKDOWN_V2),
                                       reply_markup=manage_collection_options_kb(callback_data.collection_id, collection.name,
-                                                                                callback_data.page, current_user))
+                                                                                callback_data.page, translation))
 
 @collection_router.callback_query(CollectionsCb.filter(F.action == 'set_active'))
 async def change_active_collection(callback: CallbackQuery, callback_data: CollectionsCb,
                                    current_user: User, active_collection: Collection,
-                                   session: AsyncSession):
+                                   translation, session: AsyncSession):
 
     requested_collection_id = callback_data.collection_id
     if active_collection.collection_id == requested_collection_id:
-        await callback.answer('This is your current active collection', show_alert=True)
+        await callback.answer(translation('collection_options_text.change_current_active'), show_alert=True)
         return
     await set_active_collection(session, current_user.id, requested_collection_id)
     await callback.message.edit_media(media=InputMediaPhoto(media=FSInputFile(pics['adding']),
-                                                            caption='Your active collection has been changed',
+                                                            caption=translation('collection_options_text.success_change'),
                                                             parse_mode=ParseMode.MARKDOWN_V2),
-                                      reply_markup=successfully_change_active_collection_kb(callback_data.page))
+                                      reply_markup=successfully_change_active_collection_kb(callback_data.page, translation))
     await callback.answer()
 
 @collection_router.callback_query(CollectionsCb.filter(F.action == 'delete_collection'))
-async def delete_collection_request(callback: CallbackQuery, callback_data: CollectionsCb, session: AsyncSession):
+async def delete_collection_request(callback: CallbackQuery, callback_data: CollectionsCb,
+                                    translation, session: AsyncSession):
     collection = await get_collection_by_id(session, callback_data.collection_id)
-    caption_text = (f'Are you sure you want to delete the *{safe_md(collection.name)}* collection?'
-                    f'Please note that all recipes from this collection will also be removed')
+    caption_text = translation('collection_options_text.confirm_deletion', collection_name=collection.name)
     await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['adding']),
                                                       caption=caption_text,
                                                       parse_mode=ParseMode.MARKDOWN_V2),
                                       reply_markup=get_collection_delete_confirmation_kb(callback_data.page,
-                                                                                         callback_data.collection_id))
+                                                                                         callback_data.collection_id,
+                                                                                         translation))
 
 
 @collection_router.callback_query(CollectionsCb.filter(F.action == 'confirmed_collection_deletion'))
-async def delete_collection_request(callback: CallbackQuery, callback_data: CollectionsCb,
-                                    session: AsyncSession, current_user: User,
+async def delete_collection_confirm(callback: CallbackQuery, callback_data: CollectionsCb,
+                                    session: AsyncSession, current_user: User, translation,
                                     base_collection_id, active_collection):
-    print(f'ACTIVE COLLECTION IS {active_collection.name} | {active_collection.collection_id}')
+    # print(f'ACTIVE COLLECTION IS {active_collection.name} | {active_collection.collection_id}')
     is_deleted = False
     requested_collection_id = callback_data.collection_id
     if requested_collection_id == base_collection_id:
-        await callback.answer(f'Sorry, you can not delete your base collection.')
+        await callback.answer(translation('collection_options_text.try_to_delete_base'))
         return
 
     if requested_collection_id == active_collection.collection_id:
@@ -144,24 +146,22 @@ async def delete_collection_request(callback: CallbackQuery, callback_data: Coll
 
     if is_deleted:
         photo = FSInputFile(pics['adding'])
-        caption_text = 'Collection has been *deleted*'
+        caption_text = translation('collection_options_text.success_delete')
     else:
         photo = FSInputFile(pics['adding'])
-        caption_text = ('Sorry, there was an error deleting the collection\\. '
-                        'The collection *was _not_ deleted*\\. '
-                        'Please contact us via feedback to resolve the issue\\.'
-                        '\\(please include the name of the collection you were unable to delete\\)')
+        caption_text = translation('collection_options_text.unsuccess_delete')
 
     await callback.message.edit_media(InputMediaPhoto(media=photo,
                                                       caption=caption_text,
                                                       parse_mode=ParseMode.MARKDOWN_V2),
-                                      reply_markup=successfully_change_active_collection_kb(callback_data.page))
+                                      reply_markup=successfully_delete_collection_kb(translation))
     await callback.answer()
 
 @collection_router.callback_query(CollectionsCb.filter(F.action == 'rename_collection'))
-async def get_new_collection_name(callback: CallbackQuery, callback_data: CollectionsCb, state: FSMContext):
+async def get_new_collection_name(callback: CallbackQuery, callback_data: CollectionsCb,
+                                  translation, state: FSMContext):
     photo = FSInputFile(pics['adding'])
-    caption_text = 'Write new name for collection'
+    caption_text = translation('collection_options_text.rename')
     await callback.message.edit_media(InputMediaPhoto(media=photo,
                                                       caption=caption_text))
     await state.update_data(collection_id_to_rename=callback_data.collection_id,
@@ -170,7 +170,8 @@ async def get_new_collection_name(callback: CallbackQuery, callback_data: Collec
     await callback.answer()
 
 @collection_router.message(RenameCollection.waiting_new_collection_name)
-async def change_collection_name(message: Message, current_user: User, state: FSMContext, session: AsyncSession):
+async def change_collection_name(message: Message, current_user: User, state: FSMContext,
+                                 translation, session: AsyncSession):
     data = await state.get_data()
     collection_id = data.get('collection_id_to_rename')
     page = data.get('collection_page')
@@ -179,18 +180,17 @@ async def change_collection_name(message: Message, current_user: User, state: FS
 
     if is_change:
         photo = FSInputFile(pics['adding'])
-        caption_text = 'The collection has been successfully renamed'
+        caption_text = translation('collection_options_text.success_rename')
     else:
         photo = FSInputFile(pics['adding'])
-        caption_text = ("Sorry, we couldn\\'t rename the collection. Please send us feedback with the collection name, "
-                        "and we'll look into it")
+        caption_text = translation('collection_options_text.unsuccess_rename')
 
     await message.answer_photo(photo=photo,
                                caption=caption_text,
-                               reply_markup=successfully_change_active_collection_kb(page))
+                               reply_markup=successfully_change_active_collection_kb(page, translation))
 
     await state.clear()
 
-@collection_router.callback_query(CollectionsCb.filter(F.action == 'show_collection_recipe'))
-async def collection_recipes(callback: CallbackQuery, callback_data: CollectionsCb, session: AsyncSession):
-    await callback.answer('This feature will be added soon. For now, change your collection to view recipes.')
+# @collection_router.callback_query(CollectionsCb.filter(F.action == 'show_collection_recipe'))
+# async def collection_recipes(callback: CallbackQuery, callback_data: CollectionsCb, session: AsyncSession):
+#     await callback.answer('This feature will be added soon. For now, change your collection to view recipes.')

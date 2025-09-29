@@ -5,7 +5,7 @@
     "new": "Add new recipe",
     "find": "Find recipe",
     "random": "Random recipe" ,
-    "collections": "My collections",
+    "collections": "Manage my collections",
     "change": "Change of collection",
     "help": "Help",
     "feedback": "Feedback"
@@ -22,7 +22,8 @@
     "choose_recipe" : "Choose another recipe",
     "edit" : "Edit recipe",
     "delete": "Delete recipe",
-    "back_to_list": "Back to list"
+    "back_to_list": "Back to list",
+    "edit_another": "Edite another field"
   },
 "delete_text": {
   "delete_question": "Are you sure you want to delete the {recipe_name} recipe?",
@@ -62,7 +63,10 @@
   },
   "collection_menu_btm" : {
     "manage": "Manage my collections",
-    "create" : "Create new collection"
+    "create" : "Create new collection",
+    "go_to_list": "Go to collection list",
+    "add_new_recipe": "Add new recipe",
+    "show_recipe": "Show recipe"
   },
   "collection_create_text": {
     "invitation" : "Write name for your new collection.\n\n/cancel - cancel this action",
@@ -79,11 +83,22 @@
     "set": "Set {collection_name} collection as active",
     "show": "Show recipes",
     "delete": "Delete this collection",
-    "back": "> Back to collections <"
+    "back": "> Back to collections <",
+    "create_another": "Create another collection",
+    "show_collections": "Show my collections"
   },
   "collection_options_text": {
-    "text": "Choose action for collection {collection_name}",
-    "change": "Choose collection"
+    "text": "Choose action for collection *{collection_name}*",
+    "change": "Choose collection",
+    "change_current_active": "This is your current active collection",
+    "success_change": "Your active collection has been changed",
+    "confirm_deletion": "Are you sure you want to delete the *{collection_name}* collection? Please note that all recipes from this collection will also be removed",
+    "try_to_delete_base": "Sorry, you can not delete your base collection",
+    "success_delete": "Collection has been *deleted*",
+    "unsuccess_delete" : "Sorry, there was an error deleting the collection\\. The collection *was _not_ deleted*\\.Please contact us via feedback to resolve the issue\\(please include the name of the collection you were unable to delete\\)\\.",
+    "rename": "Write new name for collection",
+    "success_rename" : "The collection has been successfully renamed",
+    "unsuccess_rename" : "\"Sorry, we couldn\\'t rename the collection. Please send us feedback with the collection name, and we'll look into it"
   },
   "help": {
     "text": "This is your recipe book\\. Just like the one many people have in their kitchens, only right here in Telegram \\. You can write down recipes so you don't lose them, share them, create your own recipe collections, and much more \\. Some features aren't available yet, but they'll be coming soon\\. This is Bot to store your favorite recipes\\.\n*This is test description*\nCommands:\n/start \\- start bot and calling main menu\n/cancel \\- cancel current action and return to main menu"
@@ -92,6 +107,10 @@
   "feedback": {
     "text": "Write your feedback: write what you like, what you don't like, what you would like to add, and what seems unnecessary and, in your opinion, can be removed\\.\n\n/cancel - to cancel this action",
     "thanks": "Thank you for your feedback! Your message has been sent, we're working hard to get better!"
+  },
+  "answers": {
+    "yes": "Yes",
+    "no": "No"
   },
   "command_action" : {"cancel" : "Action canceled"}
 }

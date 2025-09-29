@@ -11,9 +11,9 @@ from bot.db.requests.recipe_requests import get_list_page
 from bot.keyboards.recipes_keyboard import get_recipe_list_kb
 from bot.services.main_menu import show_main_menu
 from bot.db.requests import init_new_user, change_language
-from bot.keyboards.main_keyboard import feedback_kb, language_kb
+from bot.keyboards.main_keyboard import get_feedback_kb, get_language_kb
 from bot.keyboards.recipes_keyboard import get_add_recipes_keyboard, get_no_recipe_kb
-from bot.keyboards.collections_keyboard import collections_menu_keyboard
+# from bot.keyboards.collections_keyboard import get_collections_menu_keyboard
 from bot.db.models import Collection
 from bot.services.translator import get_translation
 
@@ -55,15 +55,15 @@ async def find_recipe(callback: CallbackQuery):
 async def random_recipe(callback: CallbackQuery):
     await callback.answer('Not ready yet')
 
-@main_router.callback_query(F.data == 'my_collections')
-async def collections_menu(callback: CallbackQuery, translation):
-    photo = FSInputFile(pics['main'])
-    caption_text = translation('collection_menu_text.collection_prompt')
-    await callback.message.edit_media(media=InputMediaPhoto(media=photo,
-                                                            caption=caption_text,
-                                                            parse_mode=ParseMode.MARKDOWN_V2),
-                                      reply_markup=collections_menu_keyboard)
-    await callback.answer()
+# @main_router.callback_query(F.data == 'my_collections')
+# async def collections_menu(callback: CallbackQuery, translation):
+#     photo = FSInputFile(pics['main'])
+#     caption_text = translation('collection_menu_text.collection_prompt')
+#     await callback.message.edit_media(media=InputMediaPhoto(media=photo,
+#                                                             caption=caption_text,
+#                                                             parse_mode=ParseMode.MARKDOWN_V2),
+#                                       reply_markup=get_collections_menu_keyboard(translation))
+#     await callback.answer()
 
 
 @main_router.callback_query(F.data == 'help')
@@ -73,7 +73,7 @@ async def help_msg(callback: CallbackQuery, translation):
     await callback.message.edit_media(InputMediaPhoto(media=photo,
                                                       caption=caption_text,
                                                       parse_mode=ParseMode.MARKDOWN_V2),
-                                      reply_markup=language_kb)
+                                      reply_markup=get_language_kb(translation))
 
 @main_router.callback_query(F.data == 'feedback')
 async def get_feedback_from_user(callback: CallbackQuery, translation, state: FSMContext):
@@ -91,7 +91,7 @@ async def receive_feedback(message: Message, state: FSMContext, translation, bot
                            text=(f'Feedback from @{message.from_user.username}\nID: {message.from_user.id}\n\n'
                            f'Received message:\n{message.text}'))
     await message.answer(translation('feedback.thanks'),
-                         reply_markup=feedback_kb)
+                         reply_markup=get_feedback_kb(translation))
     await state.clear()
 
 @main_router.callback_query(F.data.startswith('language:'))

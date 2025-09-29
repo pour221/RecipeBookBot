@@ -12,7 +12,7 @@ from bot.handlers.states import QuickRecipe, RecipeManage
 from bot.keyboards.recipes_keyboard import (get_recipe_option_kb, get_recipe_list_kb,
                                             get_confirm_delete_kb, get_edit_options_kb,
                                             AVAILABLE_RECIPE_FIELDS, successfully_update_recipe_field_options,
-                                            successfully_delete_recipe_options, successfully_added_recipe_kb, get_no_recipe_kb) # add_recipes_keyboard
+                                            successfully_delete_recipe_options, get_successfully_added_recipe_kb, get_no_recipe_kb) # add_recipes_keyboard
 from bot.keyboards.callbacks import RecipeCb, RecipeListCb
 from bot.services.main_menu import show_main_menu
 from bot.utils.formatting import safe_md
@@ -48,7 +48,7 @@ async def recipe_description(message: Message, state: FSMContext, current_user: 
     data = await state.get_data()
     await quick_add_new_recipe(session, current_user, active_collection, data["name"], data["description"], )
     await message.answer(text=translation('quick_add_text.success', name=safe_md(data["name"])), parse_mode=ParseMode.MARKDOWN_V2,
-                         reply_markup=successfully_added_recipe_kb)
+                         reply_markup=get_successfully_added_recipe_kb(translation))
     await state.clear()
 
 @recipe_router.callback_query(F.data == 'detailed_add')
@@ -100,7 +100,8 @@ async def show_recipe_list_page(callback: CallbackQuery, callback_data: RecipeLi
     await callback.message.edit_media(media=InputMediaPhoto(media=FSInputFile(pics['list']),
                                                             caption=caption_text,
                                                             parse_mode=ParseMode.MARKDOWN_V2),
-                                      reply_markup=get_recipe_list_kb(recipes, offset, page, has_next, collection_id))
+                                      reply_markup=get_recipe_list_kb(recipes, offset, page, has_next,
+                                                                      collection_id, translation))
     await callback.answer()
 
 
@@ -124,7 +125,8 @@ async def show_recipe(callback: CallbackQuery, callback_data: RecipeCb, active_c
     await callback.message.edit_media(InputMediaPhoto(media=photo,
                                                       caption=recipe_msg,
                                                       parse_mode=ParseMode.MARKDOWN_V2),
-                                      reply_markup=get_recipe_option_kb(callback_data.recipe_id, callback_data.page))
+                                      reply_markup=get_recipe_option_kb(callback_data.recipe_id, callback_data.page,
+                                                                        translation))
 
     await callback.answer()
 
@@ -139,7 +141,8 @@ async def  edit_recipe(callback: CallbackQuery, callback_data: RecipeCb, transla
     await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['adding']),
                                                       caption=caption_text,
                                                       parse_mode=ParseMode.MARKDOWN_V2),
-                                      reply_markup=get_edit_options_kb(callback_data.recipe_id, callback_data.page))
+                                      reply_markup=get_edit_options_kb(callback_data.recipe_id, callback_data.page,
+                                                                       translation))
     await callback.answer()
 
 @recipe_router.callback_query(RecipeManage.managing, RecipeCb.filter(F.action == "delete_recipe"))
@@ -152,7 +155,8 @@ async def delete_recipe(callback: CallbackQuery, callback_data: RecipeCb, transl
 
                                                       caption=caption_text,
                                                       parse_mode=ParseMode.MARKDOWN_V2),
-                                      reply_markup=get_confirm_delete_kb(callback_data.recipe_id, callback_data.page))
+                                      reply_markup=get_confirm_delete_kb(callback_data.recipe_id, callback_data.page,
+                                                                         translation))
     await callback.answer()
 
 @recipe_router.callback_query(RecipeManage.managing, RecipeCb.filter(F.action == "confirm_delete_recipe"))
@@ -168,7 +172,7 @@ async def confirm_delete_recipe(callback: CallbackQuery, callback_data: RecipeCb
     await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['adding']),
                                                       caption=caption_text,
                                                       parse_mode=ParseMode.MARKDOWN_V2),
-                                      reply_markup=successfully_delete_recipe_options(callback_data.page))
+                                      reply_markup=successfully_delete_recipe_options(callback_data.page, translation))
     await callback.answer()
 
 @recipe_router.callback_query(RecipeManage.managing, F.data.startswith('edit_field:'))
@@ -198,14 +202,15 @@ async def update_recipe_field(message: Message, state:FSMContext, translation, s
 
     kwargs = {field: message.text}
     updated = await update_recipe(session, recipe.recipe_id, **kwargs)
-
+    # data['recipe'] = await get_recipe_by_id(session, recipe.recipe_id)
+    await state.update_data(recipe=await get_recipe_by_id(session, recipe.recipe_id))
     if updated:
-        msg_text = f'{AVAILABLE_RECIPE_FIELDS[field]} successfully updated\nUpdated recipe:\n\n*{safe_md(updated.recipe_name.title())}*\n\n{safe_md(updated.descriptions)}\n\n'
+        # msg_text = f'{AVAILABLE_RECIPE_FIELDS[field]} successfully updated\nUpdated recipe:\n\n*{safe_md(updated.recipe_name.title())}*\n\n{safe_md(updated.descriptions)}\n\n'
         msg_text = translation('editing_text.success', field=translation(f'editable_fields.{field}').title(),
                                                        recipe_name=safe_md(updated.recipe_name.title()),
                                                        description=safe_md(updated.descriptions))
         await message.answer(text=msg_text,
-                             reply_markup=successfully_update_recipe_field_options(recipe.recipe_id),
+                             reply_markup=successfully_update_recipe_field_options(recipe.recipe_id, translation),
                              parse_mode=ParseMode.MARKDOWN_V2)
     else:
         await message.answer(translation('editing_text.unsuccess'))
