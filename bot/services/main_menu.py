@@ -2,7 +2,7 @@ from aiogram.enums import ParseMode
 from aiogram.types import FSInputFile, CallbackQuery, Message, InputMediaPhoto
 
 from bot.keyboards.main_keyboard import get_main_menu_kb
-from bot.utils.formatting import safe_md
+from bot.services.formatting import safe_md
 
 from data.configs import pics
 

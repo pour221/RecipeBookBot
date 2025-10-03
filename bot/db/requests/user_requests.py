@@ -29,12 +29,6 @@ async def init_new_user(session: AsyncSession, tg_id: BigInteger, user_name: str
 
         await session.commit()
 
-    #     return collection, user
-    #
-    # else:
-    #     collection = await session.scalar(select(Collection).where(Collection.collection_id == user.active_collection_id))
-    #     return collection, user
-
 async def change_language(session: AsyncSession, user_id: int, lang: str):
     await session.execute(update(User).where(User.id == user_id).values(language=lang))
     await session.commit()

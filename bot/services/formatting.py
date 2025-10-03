@@ -1,5 +1,6 @@
 import json
 import os
+import re
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 LOCALES_DIR = os.path.join(BASE_DIR, "locales")
@@ -10,23 +11,6 @@ LANGUAGES = ['en', 'ru']
 for language in LANGUAGES:
     with open(f'{LOCALES_DIR}/{language}.json', 'r', encoding='UTF-8') as f:
         LEXICONS[language] = json.load(f)
-
-# def t(key: str, lang: str = 'en') -> str:
-#     """
-#     Get translation using key like "section.key"
-#     :param key: str, "section.key"
-#     :param lang: "ru" or "en"
-#     :return: str
-#     """
-#
-#     key_components = key.split('.')
-#     phrases = LEXICONS.get(lang, {})
-#
-#     if phrases:
-#         return phrases.get(key_components[0]).get(key_components[1])
-#
-#     else:
-#         return key
 
 def get_translation(lang: str):
     def translation(key: str, **kwargs):
@@ -45,3 +29,7 @@ def get_translation(lang: str):
         else:
             return key
     return translation
+
+def safe_md(text: str) -> str:
+    escape_chars = r'_*[]()~`>#+-=|{}.!'
+    return re.sub(f'([{re.escape(escape_chars)}])', r'\\\1', text)

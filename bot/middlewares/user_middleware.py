@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.db.models import User, Collection
-from bot.services.translator import get_translation
+from bot.services.formatting import get_translation
 
 class DbUserMiddleware(BaseMiddleware):
    async def __call__(self, handler, event: Message | CallbackQuery, data: dict):
@@ -29,8 +29,8 @@ class DbUserMiddleware(BaseMiddleware):
         if not active_collection:
             raise RuntimeError(f"Collection {user.active_collection_id} not found for user {tg_id}")
 
-        data["current_user"] = user #current_
-        data["active_collection"] = active_collection #active_
+        data["current_user"] = user
+        data["active_collection_name"] = active_collection.name
         data['base_collection_id'] = base_collection.collection_id
 
         lang = user.language if user.language else 'en'

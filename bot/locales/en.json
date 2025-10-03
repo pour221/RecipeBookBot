@@ -85,7 +85,8 @@
     "delete": "Delete this collection",
     "back": "> Back to collections <",
     "create_another": "Create another collection",
-    "show_collections": "Show my collections"
+    "show_collections": "Show my collections",
+    "back_to_collection": "Return to collection management"
   },
   "collection_options_text": {
     "text": "Choose action for collection *{collection_name}*",
@@ -112,5 +113,5 @@
     "yes": "Yes",
     "no": "No"
   },
-  "command_action" : {"cancel" : "Action canceled"}
+  "command_action" : {"cancel" : "Current action canceled. Return to main menu"}
 }

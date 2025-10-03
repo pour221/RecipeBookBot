@@ -1,12 +1,12 @@
-from bot.db.models import User, Collection, Recipe, RecipeIngredient, Ingredient
+from bot.db.models import Recipe
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 async def add_new_recipe(session: AsyncSession, user, name,
-                         collection, description, ingredients_table,
+                         collection_id, description, ingredients_table,
                          equipments, photos):
     session.add(Recipe(user_id=user.id,
-                           collection_id=collection.collection_id,
+                           collection_id=collection_id,
                            recipe_name=name,
                            descriptions=description,
                            ingredients_table=ingredients_table,

@@ -1,51 +1,54 @@
 from aiogram import Router, F, Bot
-from aiogram.types import Message, CallbackQuery, FSInputFile, InputMediaPhoto, MessageAutoDeleteTimerChanged
+from aiogram.types import Message, CallbackQuery, FSInputFile, InputMediaPhoto
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.enums import ParseMode
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.handlers.states import FeedbackForm
-from bot.utils.formatting import safe_md
-from bot.db.requests.recipe_requests import get_list_page
-from bot.keyboards.recipes_keyboard import get_recipe_list_kb
-from bot.services.main_menu import show_main_menu
-from bot.db.requests import init_new_user, change_language
+from bot.db.requests import change_language
 from bot.keyboards.main_keyboard import get_feedback_kb, get_language_kb
-from bot.keyboards.recipes_keyboard import get_add_recipes_keyboard, get_no_recipe_kb
-# from bot.keyboards.collections_keyboard import get_collections_menu_keyboard
-from bot.db.models import Collection
-from bot.services.translator import get_translation
+from bot.keyboards.recipes_keyboard import get_add_recipes_keyboard
+from bot.services.formatting import get_translation
+from bot.services.main_menu import show_main_menu
 
 from data.configs import pics, FEEDBACK_CHAT_ID
 
 main_router = Router()
 
 @main_router.message(CommandStart())
-async def cmd_start(message: Message, active_collection, translation):
-    await show_main_menu(message, translation, active_collection.name)
+async def cmd_start(message: Message, active_collection_name: str, translation):
+    await show_main_menu(message, translation, active_collection_name)
 
 @main_router.message(Command('cancel'))
-async def cancel_command(message: Message, state: FSMContext, active_collection,
+async def cancel_command(message: Message, state: FSMContext, active_collection_name,
                          translation):
     await state.clear()
     await message.answer(translation("command_action.cancel"))
-    await show_main_menu(message, translation, active_collection.name)
+    await show_main_menu(message, translation, active_collection_name)
+
+@main_router.message(Command('language'))
+async def cancel_command(message: Message):
+    await message.answer('Данная команда ловится, но пока не готова')
 
 @main_router.callback_query(F.data == 'main_menu')
-async def main_menu(callback: CallbackQuery, state: FSMContext, active_collection, translation):
+async def main_menu(callback: CallbackQuery, state: FSMContext, active_collection_name, translation):
     await callback.answer()
     await state.clear()
-    await show_main_menu(callback, translation, active_collection.name)
+    await show_main_menu(callback, translation, active_collection_name)
 
-@main_router.callback_query(F.data == 'new_recipe')
-async def new_recipe(callback: CallbackQuery, translation):
-    await callback.answer()
+@main_router.callback_query(F.data.startswith('new_recipe:'))
+async def new_recipe(callback: CallbackQuery, current_user, translation):
+    if not callback.data.split(':')[1]:
+        target_collection = current_user.active_collection_id
+    else:
+        target_collection = int(callback.data.split(':')[1])
+
     photo = FSInputFile(pics['new'])
     await callback.message.edit_media(
         media=InputMediaPhoto(media=photo, caption=translation('adding_text.menu_text')),
-        reply_markup=get_add_recipes_keyboard(translation)
-    )
+        reply_markup=get_add_recipes_keyboard(translation, target_collection))
+    await callback.answer()
 
 @main_router.callback_query(F.data == 'find')
 async def find_recipe(callback: CallbackQuery):
@@ -54,17 +57,6 @@ async def find_recipe(callback: CallbackQuery):
 @main_router.callback_query(F.data == 'random')
 async def random_recipe(callback: CallbackQuery):
     await callback.answer('Not ready yet')
-
-# @main_router.callback_query(F.data == 'my_collections')
-# async def collections_menu(callback: CallbackQuery, translation):
-#     photo = FSInputFile(pics['main'])
-#     caption_text = translation('collection_menu_text.collection_prompt')
-#     await callback.message.edit_media(media=InputMediaPhoto(media=photo,
-#                                                             caption=caption_text,
-#                                                             parse_mode=ParseMode.MARKDOWN_V2),
-#                                       reply_markup=get_collections_menu_keyboard(translation))
-#     await callback.answer()
-
 
 @main_router.callback_query(F.data == 'help')
 async def help_msg(callback: CallbackQuery, translation):
@@ -96,14 +88,13 @@ async def receive_feedback(message: Message, state: FSMContext, translation, bot
 
 @main_router.callback_query(F.data.startswith('language:'))
 async def set_new_language(callback: CallbackQuery, session: AsyncSession, current_user,
-                        active_collection):
+                        active_collection_name):
     selected_language = callback.data.split(':')[1]
     await change_language(session, current_user.id, selected_language)
-    await session.refresh(active_collection)
     await session.refresh(current_user)
 
     current_language = current_user.language
     translation =  get_translation(current_language)
 
     await callback.answer()
-    await show_main_menu(callback, translation, active_collection.name)
+    await show_main_menu(callback, translation, active_collection_name)

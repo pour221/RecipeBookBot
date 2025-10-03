@@ -1,7 +1,7 @@
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func
-from bot.db.models import User, Collection, Recipe, RecipeIngredient, Ingredient
+from bot.db.models import User, Collection, Recipe
 
 async def create_new_collection(session: AsyncSession, user, collection_name):
     session.add(Collection(user_id=user.id,
@@ -59,6 +59,7 @@ async def delete_collection(session: AsyncSession, user_id, requested_collection
     if collection and collection.user_id == user_id:
         await session.delete(collection)
         await session.commit()
+
         return True
 
     return False

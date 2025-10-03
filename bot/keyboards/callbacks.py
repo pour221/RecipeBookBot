@@ -1,37 +1,17 @@
 from aiogram.filters.callback_data import CallbackData
 
-from bot.db.models import Collection
-
-class RecipeCb(CallbackData, prefix='recipe'):
-    recipe_id: int
+class BaseCb(CallbackData, prefix='base_callback'):
     action: str | None = None
-    page: int | None = None
+    page: int = 1
+    obj_id: int
 
-    recipe_name: str | None = None
-    description: str | None = None
-    ingredient: str | None = None
-    equipment: str | None = None
+class RecipeCb(BaseCb, prefix='recipe'):
+    pass
 
-class RecipeListCb(CallbackData, prefix='recipe_list'):
-    action : str
-    collection_id : int | None = None
-    page: int | None = None
+class CollectionsCb(BaseCb, prefix='collection'):
+    pass
 
-class CollectionsCb(CallbackData, prefix='collection'):
-    action: str | None = None
-    page : int | None = None
-    collection_id: int | None = None
-
-
-class DbUserCb(CallbackData, prefix='user'):
-    user_id: int
-    user_current_collection: int
-
-
-# class DbRecipeCb(CallbackData, prefix='recipe_data'):
-#     pass
-
-class PaginationAction(CallbackData, prefix='pagination'):
-    what: str
-    current_page: int
-    next_page: int
+class PaginationCb(BaseCb, prefix='pagination'):
+    action: str
+    page: int
+    obj_id: int | None = None
