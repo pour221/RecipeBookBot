@@ -35,6 +35,12 @@ def get_edit_options_kb(recipe_id: int, page: int, translation):
     buttons.append([get_main_menu_btn(translation)])
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
+def get_random_recipe_kb(translation):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=translation('main_menu_btn.random'), callback_data='random')],
+        [get_main_menu_btn(translation)]
+    ])
+
 # successfully action keyboards
 def get_successfully_delete_recipe_kb(page: int, translation):
     return InlineKeyboardMarkup(inline_keyboard=[

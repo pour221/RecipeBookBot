@@ -6,10 +6,10 @@ from aiogram.enums import ParseMode
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.handlers.states import FeedbackForm
-from bot.db.requests import change_language
+from bot.db.requests import change_language, get_random_recipe
 from bot.keyboards.main_keyboard import get_feedback_kb, get_language_kb
-from bot.keyboards.recipes_keyboard import get_add_recipes_keyboard
-from bot.services.formatting import get_translation
+from bot.keyboards.recipes_keyboard import get_add_recipes_keyboard, get_random_recipe_kb
+from bot.services.formatting import get_translation, safe_md, get_recipe_photo, render_recipe_text
 from bot.services.main_menu import show_main_menu
 
 from data.configs import pics, FEEDBACK_CHAT_ID
@@ -55,7 +55,22 @@ async def find_recipe(callback: CallbackQuery):
     await callback.answer('Not ready yet')
 
 @main_router.callback_query(F.data == 'random')
-async def random_recipe(callback: CallbackQuery):
+async def random_recipe(callback: CallbackQuery, current_user, translation, session: AsyncSession):
+    recipe = await get_random_recipe(session, current_user.active_collection_id)
+    if not recipe:
+        await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['adding']),
+                                                          caption=translation('adding_text.no_recipe')),
+                                          reply_markup=get_add_recipes_keyboard(translation, current_user.active_collection_id))
+        await callback.answer()
+        return
+
+    recipe_msg = render_recipe_text(recipe, translation)
+    recipe_photo = FSInputFile(get_recipe_photo(recipe))
+    await callback.message.answer_photo(photo=recipe_photo,
+                                        caption=recipe_msg,
+                                        parse_mode=ParseMode.MARKDOWN_V2,
+                                        reply_markup=get_random_recipe_kb(translation))
+
     await callback.answer('Not ready yet')
 
 @main_router.callback_query(F.data == 'help')

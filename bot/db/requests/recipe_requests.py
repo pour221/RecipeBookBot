@@ -1,6 +1,6 @@
 from bot.db.models import Recipe
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 async def add_new_recipe(session: AsyncSession, user, name,
                          collection_id, description, ingredients_table,
@@ -58,3 +58,10 @@ async def update_recipe(session: AsyncSession, recipe_id: int, **kwargs):
     await session.refresh(recipe)
 
     return recipe
+
+async def get_random_recipe(session: AsyncSession, collection_id: int):
+    result = await session.scalar(select(Recipe)
+                            .where(Recipe.collection_id == collection_id)
+                            .order_by(func.random())
+                            .limit(1))
+    return result

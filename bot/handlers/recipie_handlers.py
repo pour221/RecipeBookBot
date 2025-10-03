@@ -14,7 +14,7 @@ from bot.keyboards.recipes_keyboard import (get_recipe_option_kb, get_edit_optio
 from bot.keyboards.shared_keyboard import get_yes_no_kb
 from bot.keyboards.callbacks import RecipeCb, PaginationCb
 from bot.services.main_menu import show_main_menu
-from bot.services.formatting import safe_md
+from bot.services.formatting import safe_md, get_recipe_photo, render_recipe_text
 from bot.db.models import User
 from bot.services.pagination import render_recipe_list, get_pagination_kb
 
@@ -125,8 +125,9 @@ async def show_recipe(callback: CallbackQuery, callback_data: RecipeCb, active_c
 
         return
 
-    recipe_msg = f'*{safe_md(recipe.recipe_name.title())}*\n\n{safe_md(recipe.descriptions)}'
-    photo = FSInputFile(pics['my'])
+    # recipe_msg = f'*{safe_md(recipe.recipe_name.title())}*\n\n{safe_md(recipe.descriptions)}'
+    recipe_msg = render_recipe_text(recipe, translation)
+    photo = FSInputFile(get_recipe_photo(recipe))
     await callback.message.edit_media(InputMediaPhoto(media=photo,
                                                       caption=recipe_msg,
                                                       parse_mode=ParseMode.MARKDOWN_V2),
