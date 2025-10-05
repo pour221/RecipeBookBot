@@ -8,7 +8,7 @@ from data.configs import pics
 
 
 async def show_main_menu(event, translation, active_collection_name='Base', crutch=False):
-    photo = FSInputFile(pics['main'])
+    photo = FSInputFile(pics['main_menu'])
     caption_text = translation('main_menu_text.main', collection_name=safe_md(active_collection_name))
 
     if isinstance(event, Message):

@@ -28,7 +28,7 @@ async def quick_add(callback: CallbackQuery, translation, state: FSMContext):
     await state.set_state(QuickRecipe.name)
     target_collection = callback.data.split(':')[1]
     await state.update_data(target_collection=target_collection)
-    await callback.message.edit_media(media=InputMediaPhoto(media=FSInputFile(pics['adding']),
+    await callback.message.edit_media(media=InputMediaPhoto(media=FSInputFile(pics['new_recipe']),
                                                             caption=translation('quick_add_text.title'),
                                                             parse_mode=ParseMode.MARKDOWN_V2))
     await callback.answer()
@@ -37,7 +37,7 @@ async def quick_add(callback: CallbackQuery, translation, state: FSMContext):
 async def receive_recipe_name(message: Message, translation, state: FSMContext): # old name: recipe_name
     await state.update_data(name=message.text.title())
     await state.set_state(QuickRecipe.description)
-    await message.answer_photo(photo=FSInputFile(pics['adding']), caption=translation('quick_add_text.description'),
+    await message.answer_photo(photo=FSInputFile(pics['new_recipe']), caption=translation('quick_add_text.description'),
                              parse_mode=ParseMode.MARKDOWN_V2)
 
 @recipe_router.message(QuickRecipe.description)
@@ -90,7 +90,7 @@ async def show_recipe_list_page(callback: CallbackQuery, callback_data: Paginati
                                                                             current_user.id)
 
     if not recipes:
-        await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['list']),
+        await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['empty_list']),
                                                           caption=translation('adding_text.no_recipe')),
                                           reply_markup=get_add_recipes_keyboard(translation, collection_id))
 
@@ -100,7 +100,7 @@ async def show_recipe_list_page(callback: CallbackQuery, callback_data: Paginati
     caption_text = translation('recipe_list_text.displayed', recipe_number=len(recipes), page=page,
                                total_pages=total_pages, recipes_list=safe_md(recipes_list))
 
-    await callback.message.edit_media(media=InputMediaPhoto(media=FSInputFile(pics['list']),
+    await callback.message.edit_media(media=InputMediaPhoto(media=FSInputFile(pics['recipe_list']),
                                                             caption=caption_text,
                                                             parse_mode=ParseMode.MARKDOWN_V2),
                                       reply_markup=get_pagination_kb('recipe', recipes, page,
@@ -125,7 +125,6 @@ async def show_recipe(callback: CallbackQuery, callback_data: RecipeCb, active_c
 
         return
 
-    # recipe_msg = f'*{safe_md(recipe.recipe_name.title())}*\n\n{safe_md(recipe.descriptions)}'
     recipe_msg = render_recipe_text(recipe, translation)
     photo = FSInputFile(get_recipe_photo(recipe))
     await callback.message.edit_media(InputMediaPhoto(media=photo,
@@ -144,7 +143,7 @@ async def  edit_recipe(callback: CallbackQuery, callback_data: RecipeCb, transla
     caption_text = translation('editing_text.choose_what', recipe_name=safe_md(recipe.recipe_name.title()),
                                                            descriptions=safe_md(recipe.descriptions))
 
-    await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['adding']),
+    await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['edit']),
                                                       caption=caption_text,
                                                       parse_mode=ParseMode.MARKDOWN_V2),
                                       reply_markup=get_edit_options_kb(callback_data.obj_id, callback_data.page,
@@ -158,7 +157,7 @@ async def delete_recipe(callback: CallbackQuery, callback_data: RecipeCb, transl
     page= callback_data.page
 
     caption_text = translation('delete_text.delete_question', recipe_name=recipe.recipe_name)
-    await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['adding']),
+    await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['delete']),
 
                                                       caption=caption_text,
                                                       parse_mode=ParseMode.MARKDOWN_V2),
@@ -177,7 +176,7 @@ async def confirm_delete_recipe(callback: CallbackQuery, callback_data: RecipeCb
     await delete_recipe_by_id(session, recipe)
 
     await state.clear()
-    await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['adding']),
+    await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['delete']),
                                                       caption=caption_text,
                                                       parse_mode=ParseMode.MARKDOWN_V2),
                                       reply_markup=get_successfully_delete_recipe_kb(callback_data.page, translation))
@@ -195,7 +194,7 @@ async def edit_recipe_field(callback: CallbackQuery, state: FSMContext, translat
                                                      field=translation(f'editable_fields.{field}').lower())
     await state.update_data(field=field)
     await callback.message.edit_media(
-        InputMediaPhoto(media=FSInputFile(pics['adding']),
+        InputMediaPhoto(media=FSInputFile(pics['edit']),
                         caption=caption_text,
                         parse_mode=ParseMode.MARKDOWN_V2)
     )

@@ -50,7 +50,7 @@ def render_recipe_text(recipe, translation):
 
     return '\n\n'.join(parts)
 
-def get_recipe_photo(recipe, default_path=pics['my']):
+def get_recipe_photo(recipe, default_path=pics['my_recipe']):
     if recipe.photos and Path(recipe.photos).exists():
         return recipe.photos
     else:

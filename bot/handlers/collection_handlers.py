@@ -36,7 +36,7 @@ async def show_collection_list_page(callback: CallbackQuery, callback_data : Pag
 
     caption_text = translation('collections_list_text.list_msg', page=page, total_pages=total_pages,
                                collection_list=collection_list)
-    await callback.message.edit_media(media=InputMediaPhoto(media=FSInputFile(pics['list']),
+    await callback.message.edit_media(media=InputMediaPhoto(media=FSInputFile(pics['collection_list']),
                                                             caption=caption_text,
                                                             parse_mode=ParseMode.MARKDOWN_V2),
 
@@ -51,7 +51,7 @@ async def quick_change_collection(callback: CallbackQuery, current_user: User, s
     await state.set_state(CollectionManage.managing)
     page = 1
     page_size = 4
-    photo = FSInputFile(pics['main'])
+    photo = FSInputFile(pics['main_menu'])
     caption_text = translation('collection_options_text.change')
     collections, has_next_page, total_pages = await get_obj_list(session, Collection, current_user.id, page=page,
                                                                  page_size=page_size)
@@ -67,7 +67,7 @@ async def new_collection(callback: CallbackQuery, state: FSMContext, translation
 
     await state.set_state(CollectionManage.waiting_new_collection_name)
 
-    photo = FSInputFile(pics['main'])
+    photo = FSInputFile(pics['main_menu'])
     caption_text = translation("collection_create_text.invitation")
     await callback.message.edit_media(InputMediaPhoto(media=photo,
                                                       caption=caption_text))
@@ -79,7 +79,7 @@ async def receiving_new_collection_name(message: Message, state: FSMContext,
     new_name = message.text
     await create_new_collection(session, current_user, new_name)
     await state.clear()
-    await message.answer_photo(photo=FSInputFile(pics['adding']),
+    await message.answer_photo(photo=FSInputFile(pics['create_collection']),
                                caption=translation('collection_create_text.success'),
                                reply_markup=get_successfully_created_collection_kb(translation))
 
@@ -89,7 +89,7 @@ async def manage_collection(callback: CallbackQuery, callback_data: CollectionsC
 
     collection = await get_collection_by_id(session, callback_data.obj_id)
 
-    photo = FSInputFile(pics['adding'])
+    photo = FSInputFile(pics['collection_list'])
     caption_text = translation('collection_options_text.text', collection_name=safe_md(collection.name))
 
     await callback.message.edit_media(InputMediaPhoto(media=photo,
@@ -107,7 +107,7 @@ async def change_active_collection(callback: CallbackQuery, callback_data: Colle
         await callback.answer(translation('collection_options_text.change_current_active'), show_alert=True)
         return
     await set_active_collection(session, current_user.id, requested_collection_id)
-    await callback.message.edit_media(media=InputMediaPhoto(media=FSInputFile(pics['adding']),
+    await callback.message.edit_media(media=InputMediaPhoto(media=FSInputFile(pics['success']),
                                                             caption=translation('collection_options_text.success_change'),
                                                             parse_mode=ParseMode.MARKDOWN_V2),
                                       reply_markup=get_successfully_change_active_collection_kb(callback_data.page,
@@ -120,7 +120,7 @@ async def delete_collection_request(callback: CallbackQuery, callback_data: Coll
                                     translation, session: AsyncSession):
     collection = await get_collection_by_id(session, callback_data.obj_id)
     caption_text = translation('collection_options_text.confirm_deletion', collection_name=collection.name)
-    await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['adding']),
+    await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['delete']),
                                                       caption=caption_text,
                                                       parse_mode=ParseMode.MARKDOWN_V2),
                                       reply_markup=get_yes_no_kb(cb_class=CollectionsCb, yes_action='confirmed_collection_deletion',
@@ -148,10 +148,10 @@ async def delete_collection_confirm(callback: CallbackQuery, callback_data: Coll
     is_deleted = await delete_collection(session, current_user.id, requested_collection_id, base_collection_id)
 
     if is_deleted:
-        photo = FSInputFile(pics['adding'])
+        photo = FSInputFile(pics['success'])
         caption_text = translation('collection_options_text.success_delete')
     else:
-        photo = FSInputFile(pics['adding'])
+        photo = FSInputFile(pics['unsuccess'])
         caption_text = translation('collection_options_text.unsuccess_delete')
 
     await callback.message.edit_media(InputMediaPhoto(media=photo,
@@ -163,7 +163,7 @@ async def delete_collection_confirm(callback: CallbackQuery, callback_data: Coll
 @collection_router.callback_query(CollectionManage.managing, CollectionsCb.filter(F.action == 'rename_collection'))
 async def get_new_collection_name(callback: CallbackQuery, callback_data: CollectionsCb,
                                   translation, state: FSMContext):
-    photo = FSInputFile(pics['adding'])
+    photo = FSInputFile(pics['edit'])
     caption_text = translation('collection_options_text.rename')
     await callback.message.edit_media(InputMediaPhoto(media=photo,
                                                       caption=caption_text))
@@ -182,10 +182,10 @@ async def change_collection_name(message: Message, current_user: User, state: FS
     is_change = await rename_collection(session, collection_id, current_user.id, message.text)
 
     if is_change:
-        photo = FSInputFile(pics['adding'])
+        photo = FSInputFile(pics['success'])
         caption_text = translation('collection_options_text.success_rename')
     else:
-        photo = FSInputFile(pics['adding'])
+        photo = FSInputFile(pics['unsuccess'])
         caption_text = translation('collection_options_text.unsuccess_rename')
 
     await message.answer_photo(photo=photo,

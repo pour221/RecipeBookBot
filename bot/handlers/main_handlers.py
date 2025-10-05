@@ -44,7 +44,7 @@ async def new_recipe(callback: CallbackQuery, current_user, translation):
     else:
         target_collection = int(callback.data.split(':')[1])
 
-    photo = FSInputFile(pics['new'])
+    photo = FSInputFile(pics['new_recipe'])
     await callback.message.edit_media(
         media=InputMediaPhoto(media=photo, caption=translation('adding_text.menu_text')),
         reply_markup=get_add_recipes_keyboard(translation, target_collection))
@@ -58,24 +58,24 @@ async def find_recipe(callback: CallbackQuery):
 async def random_recipe(callback: CallbackQuery, current_user, translation, session: AsyncSession):
     recipe = await get_random_recipe(session, current_user.active_collection_id)
     if not recipe:
-        await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['adding']),
+        await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['empty_list']),
                                                           caption=translation('adding_text.no_recipe')),
                                           reply_markup=get_add_recipes_keyboard(translation, current_user.active_collection_id))
         await callback.answer()
         return
 
     recipe_msg = render_recipe_text(recipe, translation)
-    recipe_photo = FSInputFile(get_recipe_photo(recipe))
+    recipe_photo = FSInputFile(get_recipe_photo(recipe, pics['my_recipe']))
     await callback.message.answer_photo(photo=recipe_photo,
                                         caption=recipe_msg,
                                         parse_mode=ParseMode.MARKDOWN_V2,
                                         reply_markup=get_random_recipe_kb(translation))
 
-    await callback.answer('Not ready yet')
+    await callback.answer()
 
 @main_router.callback_query(F.data == 'help')
 async def help_msg(callback: CallbackQuery, translation):
-    photo = FSInputFile(pics['main'])
+    photo = FSInputFile(pics['main_menu'])
     caption_text =translation('help.text')
     await callback.message.edit_media(InputMediaPhoto(media=photo,
                                                       caption=caption_text,
@@ -85,7 +85,7 @@ async def help_msg(callback: CallbackQuery, translation):
 @main_router.callback_query(F.data == 'feedback')
 async def get_feedback_from_user(callback: CallbackQuery, translation, state: FSMContext):
     await state.set_state(FeedbackForm.waiting_for_message)
-    photo = FSInputFile(pics['adding'])
+    photo = FSInputFile(pics['edit'])
     caption_text = translation('feedback.text')
     await callback.message.edit_media(media=InputMediaPhoto(media=photo,
                                                             caption=caption_text,
