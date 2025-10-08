@@ -65,3 +65,4 @@ async def get_random_recipe(session: AsyncSession, collection_id: int):
                             .order_by(func.random())
                             .limit(1))
     return result
+

@@ -16,7 +16,7 @@ class InitUserMiddleware(BaseMiddleware):
             return await handler(event, data)
 
         tg_id = from_user_info.id
-        username = from_user_info.username
+        username = from_user_info.username or False
         fullname = f'{from_user_info.first_name} {from_user_info.last_name}'
         tg_premium = from_user_info.is_premium or False
 

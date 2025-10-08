@@ -5,10 +5,10 @@ from aiogram.fsm.context import FSMContext
 from aiogram.enums import ParseMode
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.handlers.states import FeedbackForm
+from bot.handlers.states import FeedbackForm, RecipeSearch
 from bot.db.requests import change_language, get_random_recipe
 from bot.keyboards.main_keyboard import get_feedback_kb, get_language_kb
-from bot.keyboards.recipes_keyboard import get_add_recipes_keyboard, get_random_recipe_kb
+from bot.keyboards.recipes_keyboard import get_add_recipes_keyboard, get_random_recipe_kb, get_search_options_kb
 from bot.services.formatting import get_translation, safe_md, get_recipe_photo, render_recipe_text
 from bot.services.main_menu import show_main_menu
 
@@ -50,9 +50,15 @@ async def new_recipe(callback: CallbackQuery, current_user, translation):
         reply_markup=get_add_recipes_keyboard(translation, target_collection))
     await callback.answer()
 
-@main_router.callback_query(F.data == 'find')
-async def find_recipe(callback: CallbackQuery):
-    await callback.answer('Not ready yet')
+@main_router.callback_query(F.data == 'search')
+async def find_recipe(callback: CallbackQuery, translation, state: FSMContext):
+    photo = FSInputFile(pics['main_menu'])
+    await callback.message.edit_media(media=InputMediaPhoto(media=photo,
+                                                            caption=translation('search_text.choosing_where'),
+                                                            parse_mode=ParseMode.MARKDOWN_V2),
+                                      reply_markup=get_search_options_kb(translation))
+    await state.set_state(RecipeSearch.choosing_scope)
+    await callback.answer()
 
 @main_router.callback_query(F.data == 'random')
 async def random_recipe(callback: CallbackQuery, current_user, translation, session: AsyncSession):

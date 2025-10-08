@@ -15,3 +15,6 @@ class PaginationCb(BaseCb, prefix='pagination'):
     action: str
     page: int
     obj_id: int | None = None
+
+class SearchCb(CallbackData, prefix='search'):
+    scope : str

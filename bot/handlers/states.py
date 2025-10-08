@@ -22,3 +22,8 @@ class CollectionManage(StatesGroup):
     managing = State()
     waiting_new_collection_name = State()
     waiting_for_value = State()
+
+class RecipeSearch(StatesGroup):
+    choosing_scope = State()
+    waiting_for_query = State()
+    showing_results = State()

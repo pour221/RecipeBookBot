@@ -8,7 +8,7 @@ def get_main_menu_kb(translation):
     [InlineKeyboardButton(text=translation('main_menu_btn.list'), callback_data=PaginationCb(action='recipe_page',
                                                                           page=1).pack())],
     [InlineKeyboardButton(text=translation('main_menu_btn.new'), callback_data='new_recipe:')],
-    [InlineKeyboardButton(text=translation('main_menu_btn.find'), callback_data='find'),
+    [InlineKeyboardButton(text=translation('main_menu_btn.find'), callback_data='search'),
      InlineKeyboardButton(text=translation('main_menu_btn.random'), callback_data='random')],
     [InlineKeyboardButton(text=translation('main_menu_btn.collections'), callback_data=PaginationCb(action='collection_page',
                                                                                                     page=1).pack()),

@@ -101,6 +101,17 @@
     "success_rename" : "The collection has been successfully renamed",
     "unsuccess_rename" : "\"Sorry, we couldn\\'t rename the collection. Please send us feedback with the collection name, and we'll look into it"
   },
+  "search_btn": {
+    "active_collection": "Search your active collection",
+    "all_collections": "Search all your collections",
+    "results": "Return to search results"
+  },
+  "search_text" : {
+    "choosing_where": "Choose where to search",
+    "invitation": "Write the name (or part of it) of the recipe",
+    "unsuccess" : "Nothing found matching your request: *{query}*",
+    "success": "*Search result*\nNumber of records found: {number}"
+  },
   "help": {
     "text": "This is your recipe book\\. Just like the one many people have in their kitchens, only right here in Telegram \\. You can write down recipes so you don't lose them, share them, create your own recipe collections, and much more \\. Some features aren't available yet, but they'll be coming soon\\. This is Bot to store your favorite recipes\\.\n*This is test description*\nCommands:\n/start \\- start bot and calling main menu\n/cancel \\- cancel current action and return to main menu"
 

@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from bot.keyboards.callbacks import RecipeCb, PaginationCb
+from bot.keyboards.callbacks import RecipeCb, PaginationCb, SearchCb
 from bot.keyboards.shared_keyboard import get_main_menu_btn
 
 def get_add_recipes_keyboard(translation, collection_id):
@@ -38,6 +38,13 @@ def get_edit_options_kb(recipe_id: int, page: int, translation):
 def get_random_recipe_kb(translation):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=translation('main_menu_btn.random'), callback_data='random')],
+        [get_main_menu_btn(translation)]
+    ])
+
+def get_search_options_kb(translation):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=translation('search_btn.active_collection'), callback_data=SearchCb(scope='active_user_collection').pack())],
+        [InlineKeyboardButton(text=translation('search_btn.all_collections'), callback_data=SearchCb(scope='all_user_collections').pack())],
         [get_main_menu_btn(translation)]
     ])
 

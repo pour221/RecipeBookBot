@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from sqlalchemy import select, func
+from sqlalchemy import select, func, and_
 from bot.db.models import Collection, Recipe
 from bot.keyboards.callbacks import RecipeCb, PaginationCb, CollectionsCb
 from bot.keyboards.main_keyboard import get_main_menu_btn
@@ -99,7 +99,8 @@ def get_pagination_kb(what: str, objects: list, page: int, page_size: int, has_n
 
 
 async def get_obj_list(session: AsyncSession, model, user_id: int, where_clause=None, page: int = 1, page_size: int = 10,
-                       with_count: bool = False, join_model=None, join_condition=None, count_field=None,):
+                       with_count: bool = False, join_model=None, join_condition=None, count_field=None, search_field=None,
+                       search_query: str = None): # TODO:
     """
 
     :param user_id: int,  current user id
@@ -112,12 +113,21 @@ async def get_obj_list(session: AsyncSession, model, user_id: int, where_clause=
     :param join_model: connected model (like Recipe for Collection )
     :param join_condition: join condition
     :param count_field: count field (like Recipe.recipe_id)
+    :param search_field:
+    :param search_query:
     :return: (items, has_next, total_pages)
     """
+    conditions = []
+
+    if where_clause is not None:
+        conditions.append(where_clause)
+    if search_query and search_field is not None:
+        conditions.append(search_field.ilike(f"%{search_query}%"))
 
     total_stmt = select(func.count()).select_from(model)
-    if where_clause is not None:
-        total_stmt = total_stmt.where(where_clause)
+
+    if conditions:
+        total_stmt = total_stmt.where(and_(*conditions))
 
     total = await session.scalar(total_stmt)
     total_pages = (total + page_size - 1) // page_size
@@ -131,8 +141,8 @@ async def get_obj_list(session: AsyncSession, model, user_id: int, where_clause=
     else:
         stmt = select(model)
 
-    if where_clause is not None:
-        stmt = stmt.where(where_clause)
+    if conditions:
+        stmt = stmt.where(and_(*conditions))
 
     stmt = stmt.limit(page_size + 1).offset((page - 1) * page_size)
 
@@ -200,3 +210,35 @@ async def render_collection_list(session, page, page_size, user_id, translation)
 
     collection_list = '\n'.join(text_parts)
     return collection_list, collections, has_next, total_pages
+
+async def render_search_recipe_results(session, page, page_size, user_id, query, translation,
+                                       scope, active_collection_id):
+    """
+
+    :param session:
+    :param page:
+    :param page_size:
+    :param user_id:
+    :param query:
+    :param where:
+    :param translation:
+    :param active_collection_id:
+    :param where_clause:
+    :return:
+    """
+    if scope == "active_user_collection":
+        where_clause = Recipe.collection_id == active_collection_id
+    elif scope == "all_user_collections":
+        where_clause = Recipe.user_id == user_id
+    else:
+        where_clause = ''
+
+    results, has_next, total_pages  = await get_obj_list(session, Recipe, user_id, page=page, page_size=page_size,
+                                                         where_clause=where_clause, search_query=query,
+                                                         search_field=Recipe.recipe_name)
+    if not results:
+        result_msg = [translation('search_text.unsuccess', query=safe_md(query))]
+    else:
+        result_msg = [translation('search_text.success', number=len(results))] + [f'{num}\\. {safe_md(recipe.recipe_name)}' for num, recipe in enumerate(results, start=1)]
+
+    return '\n'.join(result_msg), results, has_next, total_pages

@@ -6,17 +6,17 @@ from aiogram.enums import ParseMode
 
 from bot.db.requests import (quick_add_new_recipe, delete_recipe_by_id, get_recipe_by_id,
                              update_recipe)
-from bot.handlers.states import QuickRecipe, RecipeManage
+from bot.handlers.states import QuickRecipe, RecipeManage, RecipeSearch
 from bot.keyboards.recipes_keyboard import (get_recipe_option_kb, get_edit_options_kb,
                                             get_successfully_update_recipe_field_kb,
                                             get_successfully_delete_recipe_kb, get_successfully_added_recipe_kb,
                                             get_add_recipes_keyboard)
 from bot.keyboards.shared_keyboard import get_yes_no_kb
-from bot.keyboards.callbacks import RecipeCb, PaginationCb
+from bot.keyboards.callbacks import RecipeCb, PaginationCb, SearchCb
 from bot.services.main_menu import show_main_menu
 from bot.services.formatting import safe_md, get_recipe_photo, render_recipe_text
 from bot.db.models import User
-from bot.services.pagination import render_recipe_list, get_pagination_kb
+from bot.services.pagination import render_recipe_list, get_pagination_kb, render_search_recipe_results
 
 from data.configs import pics
 
@@ -114,7 +114,9 @@ async def show_recipe_list_page(callback: CallbackQuery, callback_data: Paginati
 @recipe_router.callback_query(RecipeCb.filter(F.action == "show_recipe"))
 async def show_recipe(callback: CallbackQuery, callback_data: RecipeCb, active_collection_name: str,
                       translation, state: FSMContext, session: AsyncSession):
+
     await state.set_state(RecipeManage.managing)
+
     recipe = await get_recipe_by_id(session, callback_data.obj_id)
 
     await state.update_data(recipe=recipe)
@@ -220,4 +222,30 @@ async def update_recipe_field(message: Message, state:FSMContext, translation, s
         await message.answer(translation('editing_text.unsuccess'))
 
     await state.set_state(RecipeManage.managing)
+
+
+@recipe_router.callback_query(RecipeSearch.choosing_scope, SearchCb.filter())
+async def receive_query_for_in_active_search(callback: CallbackQuery, callback_data: SearchCb, state: FSMContext, translation):
+    await state.update_data(scope=callback_data.scope)
+    await state.set_state(RecipeSearch.waiting_for_query)
+    await callback.message.answer(translation('search_text.invitation'))
+    await callback.answer()
+
+@recipe_router.message(RecipeSearch.waiting_for_query)
+async def search_in_active_collection(message: Message, state: FSMContext, translation,
+                                      current_user, session: AsyncSession):
+    data = await state.get_data()
+    scope = data.get('scope')
+    query = message.text.strip()
+
+    await state.update_data(scope=scope, query=query)
+
+    msg_text, recipes, has_next, total_pages = await render_search_recipe_results(session, page_size=12, page=1,
+                                                                                  query=query, user_id=current_user.id,
+                                                                                  active_collection_id=current_user.active_collection_id,
+                                                                                  translation=translation, scope=scope)
+    await message.answer_photo(photo=FSInputFile(pics['adding_recipe']), caption=msg_text, parse_mode=ParseMode.MARKDOWN_V2,
+                                      reply_markup=get_pagination_kb("recipe", recipes, page=1, page_size=12,
+                                                                     has_next=has_next, translation=translation,
+                                                                     action='show_recipe'))
 
