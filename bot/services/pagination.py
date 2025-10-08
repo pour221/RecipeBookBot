@@ -124,7 +124,7 @@ async def get_obj_list(session: AsyncSession, model, user_id: int, where_clause=
     if search_query and search_field is not None:
         conditions.append(search_field.ilike(f"%{search_query}%"))
 
-    total_stmt = select(func.count()).select_from(model)
+    total_stmt = select(func.count()).select_from(model).where(Collection.user_id == user_id)
 
     if conditions:
         total_stmt = total_stmt.where(and_(*conditions))
@@ -139,7 +139,7 @@ async def get_obj_list(session: AsyncSession, model, user_id: int, where_clause=
             .where(Collection.user_id == user_id)
             .group_by(model.collection_id))
     else:
-        stmt = select(model)
+        stmt = select(model).where(model.user_id == user_id)
 
     if conditions:
         stmt = stmt.where(and_(*conditions))
