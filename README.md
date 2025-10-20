@@ -13,7 +13,7 @@ This Telegram bot is your personal **recipe book** — write down, search, and s
 * 🔧 **Detailed recipe entry** (title, description, ingredients, equipment) — in development
 * ✅ **Search recipes by name**
 * ✅ **Get a random recipe**
-* 🔧 **Automatic calorie and macronutrient (Kcal/BJU) estimation** — in development
+* 🔧 **Automatic calories and macronutrients (Kcal/P/F/C) estimation** — in development
 
 ---
 
