@@ -129,7 +129,13 @@ async def show_recipe(callback: CallbackQuery, callback_data: RecipeCb, active_c
 
     recipe_msg = render_recipe_text(recipe, translation)
     photo = FSInputFile(get_recipe_photo(recipe))
-    await callback.message.edit_media(InputMediaPhoto(media=photo,
+    if len(recipe_msg) >= 1024:
+        await callback.message.delete()
+        await callback.message.answer(text=recipe_msg, parse_mode=ParseMode.MARKDOWN_V2,
+                                          reply_markup=get_recipe_option_kb(callback_data.obj_id, callback_data.page,
+                                                                    translation))
+    else:
+        await callback.message.edit_media(InputMediaPhoto(media=photo,
                                                       caption=recipe_msg,
                                                       parse_mode=ParseMode.MARKDOWN_V2),
                                       reply_markup=get_recipe_option_kb(callback_data.obj_id, callback_data.page,
@@ -144,8 +150,13 @@ async def  edit_recipe(callback: CallbackQuery, callback_data: RecipeCb, transla
     recipe = context_data['recipe']
     caption_text = translation('editing_text.choose_what', recipe_name=safe_md(recipe.recipe_name.title()),
                                                            descriptions=safe_md(recipe.descriptions))
-
-    await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['edit']),
+    if len(caption_text) >= 1024:
+        await callback.message.delete()
+        await callback.message.answer(text=caption_text, parse_mode=ParseMode.MARKDOWN_V2,
+                                      reply_markup=get_edit_options_kb(callback_data.obj_id, callback_data.page,
+                                                                       translation))
+    else:
+        await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['edit']),
                                                       caption=caption_text,
                                                       parse_mode=ParseMode.MARKDOWN_V2),
                                       reply_markup=get_edit_options_kb(callback_data.obj_id, callback_data.page,
@@ -195,7 +206,12 @@ async def edit_recipe_field(callback: CallbackQuery, state: FSMContext, translat
                                                      description=safe_md(recipe.descriptions),
                                                      field=translation(f'editable_fields.{field}').lower())
     await state.update_data(field=field)
-    await callback.message.edit_media(
+
+    if len(caption_text) >= 1024:
+        await callback.message.delete()
+        await callback.message.answer(text=caption_text, parse_mode=ParseMode.MARKDOWN_V2)
+    else:
+        await callback.message.edit_media(
         InputMediaPhoto(media=FSInputFile(pics['edit']),
                         caption=caption_text,
                         parse_mode=ParseMode.MARKDOWN_V2)

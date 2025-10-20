@@ -15,7 +15,8 @@
   "recipe_list_btm" : {"collections": "> В коллекции <"},
   "recipe_list_text" : {
     "displayed" :  "Количество отображаемых рецептов: {recipe_number}\\. Воспользуйтесь меню для перелистывания, чтобы посмотреть остальные\n\nСтраница {page}/{total_pages}\n\n{recipes_list}",
-    "not_found" : "Рецепт не найден"
+    "not_found" : "Рецепт не найден",
+    "recipe": "Ваш рецепт:"
   },
   "recipe_options_btn" : {
     "choose_recipe" : "Выбрать другой рецепт",
@@ -32,8 +33,7 @@
     "recipe_name" : "Название",
     "descriptions" : "Описание",
     "ingredients_table" : "Игредиенты",
-    "equipments": "Оборудование",
-    "photo": "Фото"
+    "equipments": "Оборудование"
   },
   "editing_text" : {
     "choose_what": "*{recipe_name}*\n\n{descriptions}\n\nВыберите, что хотите поменять",

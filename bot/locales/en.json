@@ -15,7 +15,8 @@
   "recipe_list_btm" : {"collections": "> Go to collections <"},
   "recipe_list_text" : {
     "displayed" :  "{recipe_number} recipes are displayed\\. Use the menu to view the rest\n\nPage {page}/{total_pages}\n\n{recipes_list}'",
-    "not_found" : "Recipe not found"
+    "not_found" : "Recipe not found",
+    "recipe": "Your recipe:"
   },
 
   "recipe_options_btn" : {
@@ -33,8 +34,7 @@
     "recipe_name" : "Title",
     "descriptions" : "Descriptions",
     "ingredients_table" : "Ingredients",
-    "equipments": "Equipments",
-    "photo": "Photo"
+    "equipments": "Equipments"
   },
   "editing_text" : {
     "choose_what": "*{recipe_name}*\n\n*{descriptions}*\n\nChoose what to change in the recipe",

@@ -21,7 +21,7 @@ async def quick_add_new_recipe(session: AsyncSession, user, collection, name, de
 
 async def get_list_page(session: AsyncSession, collection_id, page, page_size):
     total = await session.scalars(select(Recipe).where(Recipe.collection_id == collection_id))
-
+    print('first')
     stmt = (
             select(Recipe)
             .where(Recipe.collection_id == collection_id)
@@ -30,6 +30,7 @@ async def get_list_page(session: AsyncSession, collection_id, page, page_size):
         )
 
     results = await session.scalars(stmt)
+    print('second')
     recipes = results.all()
 
     total_pages = (len(total.all()) + page_size - 1) // page_size

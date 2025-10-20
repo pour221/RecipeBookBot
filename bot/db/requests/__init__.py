@@ -11,7 +11,6 @@ __all__ = [
     # recipe_requests
     'add_new_recipe',
     'quick_add_new_recipe',
-    'get_list_page',
     'get_random_recipe',
     # 'get_recipe_by_number',
     'get_recipe_by_id',
