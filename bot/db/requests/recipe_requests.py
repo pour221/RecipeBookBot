@@ -4,7 +4,7 @@ from sqlalchemy import select, func
 
 async def add_new_recipe(session: AsyncSession, user, name,
                          collection_id, description, ingredients_table,
-                         equipments, photos):
+                         equipments, photos=None):
     session.add(Recipe(user_id=user.id,
                            collection_id=collection_id,
                            recipe_name=name,

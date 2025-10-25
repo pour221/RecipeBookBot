@@ -37,7 +37,7 @@
   },
   "editing_text" : {
     "choose_what": "*{recipe_name}*\n\n{descriptions}\n\nВыберите, что хотите поменять",
-    "write":"*{recipe_name}*\n\n{description}\n\n_Напишите {field}:_",
+    "write":"*{recipe_name}*\n\nТекущее значение:\n{description}\n\n_Напишите {field}:_",
     "success": "{field} успешно обновлено\nОбновленный рецепт:\n\n*{recipe_name}*\n\n{description}\n\n",
      "unsuccess" : "Обновление не удалось: рецепт не может быть обновлен"
   },
@@ -54,6 +54,13 @@
     "title": "Напишите *название* рецепта:",
     "description": "Напишите *описание* рецепта:",
     "success": "Рецепт *\"{name}\"* добавлен \\!"
+  },
+  "detailed_add_text": {
+    "title": "Напишите *название* рецепта:",
+    "description": "Напишите *описание* рецепта:",
+    "ingredients": "Напиши необходимые *ингредиенты* для рецепта:",
+    "equipments": "Напиши необходимое *оборудование* для рецепта:",
+    "success": "Your recipe *\"{name}\"* has been added \\!"
   },
   "successfully_added": {
     "quick": "Быстрое добавление еще одного рецепта",

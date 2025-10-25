@@ -1,6 +1,6 @@
 # Recipe Book Telegram Bot
 
-> **Status:** *In development*
+> **Status:** *On pause*
 
 This Telegram bot is your personal **recipe book** — write down, search, and share recipes easily, directly in Telegram.
 
@@ -10,7 +10,7 @@ This Telegram bot is your personal **recipe book** — write down, search, and s
 
 * ✅ **Create and manage personal collections**
 * ✅ **Quick recipe entry:** add a recipe (title + description)
-* 🔧 **Detailed recipe entry** (title, description, ingredients, equipment) — in development
+* ✅ **Detailed recipe entry** (title, description, ingredients, equipment)
 * ✅ **Search recipes by name**
 * ✅ **Get a random recipe**
 * 🔧 **Automatic calories and macronutrients (Kcal/P/F/C) estimation** — in development

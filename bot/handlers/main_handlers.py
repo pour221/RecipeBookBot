@@ -9,7 +9,7 @@ from bot.handlers.states import FeedbackForm, RecipeSearch
 from bot.db.requests import change_language, get_random_recipe
 from bot.keyboards.main_keyboard import get_feedback_kb, get_language_kb
 from bot.keyboards.recipes_keyboard import get_add_recipes_keyboard, get_random_recipe_kb, get_search_options_kb
-from bot.services.formatting import get_translation, safe_md, get_recipe_photo, render_recipe_text
+from bot.services.formatting import get_translation, split_message, get_recipe_photo, render_recipe_text
 from bot.services.main_menu import show_main_menu
 
 from data.configs import pics, FEEDBACK_CHAT_ID
@@ -72,10 +72,24 @@ async def random_recipe(callback: CallbackQuery, current_user, translation, sess
 
     recipe_msg = render_recipe_text(recipe, translation)
     recipe_photo = FSInputFile(get_recipe_photo(recipe, pics['my_recipe']))
-    await callback.message.answer_photo(photo=recipe_photo,
-                                        caption=recipe_msg,
-                                        parse_mode=ParseMode.MARKDOWN_V2,
-                                        reply_markup=get_random_recipe_kb(translation))
+    if len(recipe_msg) >= 1024:
+        await callback.message.delete()
+        if len(recipe_msg) >= 3900:
+            msg_parts = split_message(recipe_msg)
+            for part in msg_parts[:-1]:
+                await callback.message.answer(text=part, parse_mode=ParseMode.MARKDOWN_V2)
+
+            await callback.message.answer(text=msg_parts[-1], parse_mode=ParseMode.MARKDOWN_V2,
+                                          reply_markup=get_random_recipe_kb(translation))
+        else:
+            await callback.message.answer(text=recipe_msg, parse_mode=ParseMode.MARKDOWN_V2,
+                                          reply_markup=get_random_recipe_kb(translation))
+
+    else:
+        await callback.message.answer_photo(photo=recipe_photo,
+                                            caption=recipe_msg,
+                                            parse_mode=ParseMode.MARKDOWN_V2,
+                                            reply_markup=get_random_recipe_kb(translation))
 
     await callback.answer()
 

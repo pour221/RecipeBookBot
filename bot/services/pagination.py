@@ -183,7 +183,7 @@ async def render_recipe_list(session, page, page_size, collection_id, user_id) -
     """
     recipes, has_next, total_pages = await get_obj_list(session, Recipe, user_id, (Recipe.collection_id == collection_id),
                                                         page=page, page_size=page_size)
-    recipes_list = '\n'.join([f'{num}. {safe_md(i.recipe_name)}' for num, i in enumerate(recipes, start=(page - 1) * page_size+1)])
+    recipes_list = '\n'.join([f'{num}\\. {safe_md(i.recipe_name)}' for num, i in enumerate(recipes, start=(page - 1) * page_size+1)])
     return recipes_list, recipes, has_next, total_pages
 
 async def render_collection_list(session, page, page_size, user_id, translation):

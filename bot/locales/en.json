@@ -38,7 +38,7 @@
   },
   "editing_text" : {
     "choose_what": "*{recipe_name}*\n\n*{descriptions}*\n\nChoose what to change in the recipe",
-    "write":"*{recipe_name}*\n\n{description}\n\n_Write new {field}:_",
+    "write":"*{recipe_name}*\n\nCurrent value:\n{description}\n\n_Write new {field}:_",
     "success": "{field} successfully updated\nUpdated recipe:\n\n*{recipe_name}*\n\n{description}\n\n",
     "unsuccess" : "Update failed: This recipe cannot be updated"
   },
@@ -54,6 +54,13 @@
   "quick_add_text": {
     "title": "Write recipe *title*:",
     "description": "Write your recipe description:",
+    "success": "Your recipe *\"{name}\"* has been added \\!"
+  },
+  "detailed_add_text": {
+    "title": "Write recipe *title*:",
+    "description": "Write your recipe *description*:",
+    "ingredients": "Write the necessary *ingredients* for the recipe:",
+    "equipments": "Write the necessary *equipment* for the recipe:",
     "success": "Your recipe *\"{name}\"* has been added \\!"
   },
   "successfully_added": {

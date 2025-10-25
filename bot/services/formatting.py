@@ -33,19 +33,24 @@ def get_translation(lang: str):
             return key
     return translation
 
-def safe_md(text: str) -> str:
+def safe_md(text: str) -> str | None:
     escape_chars = r'_*[]()~`>#+-=|{}.!'
+
+    if text is None:
+        return None
+
     return re.sub(f'([{re.escape(escape_chars)}])', r'\\\1', text)
 
 def render_recipe_text(recipe, translation):
-    parts = [f'*{safe_md(recipe.recipe_name)}*']
+    parts = [f'🍲 *{safe_md(recipe.recipe_name)}*']
     if recipe.ingredients_table:
-        parts.append(f'\n{translation('editable_fields.ingredients_table')}: ')
+        parts.append(f'🛒 {translation('editable_fields.ingredients_table')}: ')
         parts.append(f"{safe_md(recipe.ingredients_table)}")
     if recipe.equipments:
-        parts.append(f'\n{translation('editable_fields.equipments')}: ')
+        parts.append(f'⚙️ {translation('editable_fields.equipments')}: ')
         parts.append(f"{safe_md(recipe.equipments)}")
     if recipe.descriptions:
+        parts.append(f'📖 *{translation('editable_fields.descriptions')}*: ')
         parts.append(f"{safe_md(recipe.descriptions)}")
 
     return '\n\n'.join(parts)
@@ -55,3 +60,27 @@ def get_recipe_photo(recipe, default_path=pics['my_recipe']):
         return recipe.photos
     else:
         return default_path
+
+
+def split_message(text: str):
+    """
+    Split long message into parts
+    """
+
+    max_length = 3900
+
+    parts = []
+    while len(text) > max_length:
+        split_pos = text.rfind("\n", 0, max_length)
+        if split_pos == -1:
+            split_pos = text.rfind(" ", 0, max_length)
+        if split_pos == -1:
+            split_pos = max_length
+
+        parts.append(text[:split_pos].strip())
+        text = text[split_pos:].strip()
+
+    if text:
+        parts.append(text)
+
+    return parts

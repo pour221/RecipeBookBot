@@ -4,9 +4,9 @@ from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from aiogram.enums import ParseMode
 
-from bot.db.requests import (quick_add_new_recipe, delete_recipe_by_id, get_recipe_by_id,
+from bot.db.requests import (quick_add_new_recipe, add_new_recipe,  delete_recipe_by_id, get_recipe_by_id,
                              update_recipe)
-from bot.handlers.states import QuickRecipe, RecipeManage, RecipeSearch
+from bot.handlers.states import QuickRecipe, DetailRecipe, RecipeManage, RecipeSearch
 from bot.keyboards.recipes_keyboard import (get_recipe_option_kb, get_edit_options_kb,
                                             get_successfully_update_recipe_field_kb,
                                             get_successfully_delete_recipe_kb, get_successfully_added_recipe_kb,
@@ -14,7 +14,7 @@ from bot.keyboards.recipes_keyboard import (get_recipe_option_kb, get_edit_optio
 from bot.keyboards.shared_keyboard import get_yes_no_kb
 from bot.keyboards.callbacks import RecipeCb, PaginationCb, SearchCb
 from bot.services.main_menu import show_main_menu
-from bot.services.formatting import safe_md, get_recipe_photo, render_recipe_text
+from bot.services.formatting import safe_md, get_recipe_photo, render_recipe_text, split_message
 from bot.db.models import User
 from bot.services.pagination import render_recipe_list, get_pagination_kb, render_search_recipe_results
 
@@ -55,8 +55,62 @@ async def recipe_description(message: Message, state: FSMContext, current_user: 
     await state.clear()
 
 @recipe_router.callback_query(F.data.startswith('detailed_add:'))
-async def quick_add(callback: CallbackQuery):
-    await callback.answer('Will be available soon')
+async def detailed_add(callback: CallbackQuery, state: FSMContext, translation):
+    await state.set_state(DetailRecipe.name)
+    target_collection = callback.data.split(':')[1]
+    await state.update_data(target_collection=target_collection)
+
+    await callback.message.edit_media(media=InputMediaPhoto(media=FSInputFile(pics['new_recipe']),
+                                                            caption=translation('detailed_add_text.title'),
+                                                            parse_mode=ParseMode.MARKDOWN_V2))
+
+    await callback.answer()
+
+@recipe_router.message(DetailRecipe.name)
+async def detailed_add(message: Message, state: FSMContext, translation):
+    await state.set_state(DetailRecipe.ingredients)
+    await state.update_data(name=message.text.title())
+
+
+    await message.answer_photo(photo=FSInputFile(pics['new_recipe']),
+                               caption=translation('detailed_add_text.ingredients'),
+                               parse_mode=ParseMode.MARKDOWN_V2)
+
+@recipe_router.message(DetailRecipe.ingredients)
+async def detailed_add(message: Message, state: FSMContext, translation):
+    await state.set_state(DetailRecipe.equipments)
+    await state.update_data(ingredients=message.text)
+
+    await message.answer_photo(photo=FSInputFile(pics['new_recipe']),
+                               caption=translation('detailed_add_text.equipments'),
+                               parse_mode=ParseMode.MARKDOWN_V2)
+
+
+@recipe_router.message(DetailRecipe.equipments)
+async def detailed_add(message: Message, state: FSMContext, translation):
+    await state.set_state(DetailRecipe.description)
+    await state.update_data(equipments=message.text)
+
+    await message.answer_photo(photo=FSInputFile(pics['new_recipe']),
+                               caption=translation('detailed_add_text.description'),
+                               parse_mode=ParseMode.MARKDOWN_V2)
+
+@recipe_router.message(DetailRecipe.description)
+async def detailed_add(message: Message, state: FSMContext, current_user,
+                       translation, session: AsyncSession):
+    await state.update_data(description=message.text)
+    data = await state.get_data()
+    msg = '\n'.join([data['name'], data['ingredients'], data['equipments'], data['description']])
+
+    target_collection = data.get('target_collection')
+
+    await add_new_recipe(session, current_user, data["name"], target_collection, data["description"],
+                         data["ingredients"], data['equipments'])
+
+    await message.answer(text=translation('detailed_add_text.success', name=safe_md(data["name"])), parse_mode=ParseMode.MARKDOWN_V2,
+                         reply_markup=get_successfully_added_recipe_kb(translation, target_collection))
+
+    await state.clear()
 
 @recipe_router.callback_query(F.data == 'ai_generate')
 async def quick_add(callback: CallbackQuery):
@@ -98,7 +152,7 @@ async def show_recipe_list_page(callback: CallbackQuery, callback_data: Paginati
         return
 
     caption_text = translation('recipe_list_text.displayed', recipe_number=len(recipes), page=page,
-                               total_pages=total_pages, recipes_list=safe_md(recipes_list))
+                               total_pages=total_pages, recipes_list=recipes_list)
 
     await callback.message.edit_media(media=InputMediaPhoto(media=FSInputFile(pics['recipe_list']),
                                                             caption=caption_text,
@@ -129,9 +183,19 @@ async def show_recipe(callback: CallbackQuery, callback_data: RecipeCb, active_c
 
     recipe_msg = render_recipe_text(recipe, translation)
     photo = FSInputFile(get_recipe_photo(recipe))
+
     if len(recipe_msg) >= 1024:
         await callback.message.delete()
-        await callback.message.answer(text=recipe_msg, parse_mode=ParseMode.MARKDOWN_V2,
+        if len(recipe_msg) > 3900:
+            msg_parts = split_message(recipe_msg)
+            for part in msg_parts[:-1]:
+                await callback.message.answer(text=part, parse_mode=ParseMode.MARKDOWN_V2)
+
+            await callback.message.answer(text=msg_parts[-1], parse_mode=ParseMode.MARKDOWN_V2,
+                                          reply_markup=get_recipe_option_kb(callback_data.obj_id, callback_data.page,
+                                                                            translation))
+        else:
+            await callback.message.answer(text=recipe_msg, parse_mode=ParseMode.MARKDOWN_V2,
                                           reply_markup=get_recipe_option_kb(callback_data.obj_id, callback_data.page,
                                                                     translation))
     else:
@@ -169,7 +233,7 @@ async def delete_recipe(callback: CallbackQuery, callback_data: RecipeCb, transl
     recipe = context_data['recipe']
     page= callback_data.page
 
-    caption_text = translation('delete_text.delete_question', recipe_name=recipe.recipe_name)
+    caption_text = translation('delete_text.delete_question', recipe_name=safe_md(recipe.recipe_name))
     await callback.message.edit_media(InputMediaPhoto(media=FSInputFile(pics['delete']),
 
                                                       caption=caption_text,
@@ -185,7 +249,7 @@ async def confirm_delete_recipe(callback: CallbackQuery, callback_data: RecipeCb
 
     context_data = await state.get_data()
     recipe = context_data['recipe']
-    caption_text = translation('delete_text.delete_confirmation', recipe_name=recipe.recipe_name)
+    caption_text = translation('delete_text.delete_confirmation', recipe_name=safe_md(recipe.recipe_name))
     await delete_recipe_by_id(session, recipe)
 
     await state.clear()
@@ -200,16 +264,28 @@ async def edit_recipe_field(callback: CallbackQuery, state: FSMContext, translat
     _, field, recipe_id = callback.data.split(":")
 
     context_data = await state.get_data()
+
     recipe = context_data['recipe']
 
+    fields = {'recipe_name' : recipe.recipe_name,
+              'descriptions' : recipe.descriptions,
+              'ingredients_table': recipe.ingredients_table if recipe.ingredients_table else '',
+              'equipments': recipe.equipments if recipe.equipments else ''}
+
     caption_text = translation('editing_text.write', recipe_name=safe_md(recipe.recipe_name.title()),
-                                                     description=safe_md(recipe.descriptions),
+                                                     description=safe_md(fields.get(field)),
                                                      field=translation(f'editable_fields.{field}').lower())
     await state.update_data(field=field)
 
     if len(caption_text) >= 1024:
         await callback.message.delete()
-        await callback.message.answer(text=caption_text, parse_mode=ParseMode.MARKDOWN_V2)
+        if len(caption_text) >=3900:
+            parts = split_message(caption_text)
+            for part in parts:
+                await callback.message.answer(text=part, parse_mode=ParseMode.MARKDOWN_V2)
+
+        else:
+            await callback.message.answer(text=caption_text, parse_mode=ParseMode.MARKDOWN_V2)
     else:
         await callback.message.edit_media(
         InputMediaPhoto(media=FSInputFile(pics['edit']),
