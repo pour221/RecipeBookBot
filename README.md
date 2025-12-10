@@ -1,8 +1,8 @@
 # Recipe Book Telegram Bot
 
-> **Status:** *On pause*
-
 This Telegram bot is your personal **recipe book** — write down, search, and share recipes easily, directly in Telegram.
+
+> **Status:** *On pause*
 
 ---
 
